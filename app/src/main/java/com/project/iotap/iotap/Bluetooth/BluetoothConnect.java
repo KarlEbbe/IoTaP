@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.SyncStateContract;
+import android.view.View;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +25,7 @@ import java.util.UUID;
 
 public class BluetoothConnect {
 
-    BluetoothAdapter mBluetoothAdapter;
+    private BluetoothAdapter btAdapter;
 
     Handler mHandler = new Handler() {
         @Override
@@ -40,27 +42,29 @@ public class BluetoothConnect {
         }
     };
 
-
     public BluetoothConnect(Context applicationContext) {
-        // Check if device support Bluetooth
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            // Device does not support Bluetooth! Show error msg
-        } else if (!mBluetoothAdapter.isEnabled()) {
+         btAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (btAdapter == null) {
+            // Device does not support Bluetooth! Show error msg!!!
+            return;
+        } else if (!btAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-
             ((Activity) applicationContext).startActivityForResult(enableBtIntent, 0);
-            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-            BluetoothDevice mDevice = null;
-            if (pairedDevices.size() > 0) {
-                for (BluetoothDevice device : pairedDevices) {
-                    mDevice = device;
-                }
-            }
-            ConnectThread mConnectThread = new ConnectThread(mDevice);
-            mConnectThread.start();
         }
     }
+
+    public void startTransfer() {
+        Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
+        BluetoothDevice device = null;
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice pairedDevice : pairedDevices) {
+                device = pairedDevice;
+            }
+        }
+        ConnectThread mConnectThread = new ConnectThread(device);
+        mConnectThread.start();
+    }
+
 
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
@@ -78,7 +82,7 @@ public class BluetoothConnect {
         }
 
         public void run() {
-            mBluetoothAdapter.cancelDiscovery();
+            btAdapter.cancelDiscovery();
             try {
                 mmSocket.connect();
             } catch (IOException connectException) {
