@@ -1,5 +1,6 @@
 package com.project.iotap.iotap.Activities;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -23,16 +24,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //BluetoothConnect btc = new BluetoothConnect(getApplicationContext());
-        WekaClassifier classifier = new WekaClassifier();
+        //WekaClassifier classifier = new WekaClassifier(getApplicationContext());
 
         try{
-
-            classifier.createClassifier();
-
+            //classifier.createClassifier();
         }catch(Exception e){
             System.out.println("ERROR:");
             System.out.println(e);
         }
-
     }
 }
