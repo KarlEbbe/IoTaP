@@ -1,6 +1,5 @@
 package com.project.iotap.iotap.Activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,22 +7,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.project.iotap.iotap.Bluetooth.BluetoothConnect;
-import com.project.iotap.iotap.MachineLearning.WekaClassifier;
+import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.R;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Set;
-import java.util.UUID;
-
-import weka.classifiers.functions.SimpleLogistic;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button btnTest;
-    private BluetoothConnect btc;
+    private BluetoothHandler btc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //just some testing code for the bt.
-                btc = new BluetoothConnect(MainActivity.this);
+                btc = new BluetoothHandler(MainActivity.this);
             }
         });
     }

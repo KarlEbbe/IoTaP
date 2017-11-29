@@ -8,8 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.SyncStateContract;
-import android.view.View;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,64 +19,77 @@ import java.util.UUID;
 
 /**
  * Created by Anton on 2017-11-29.
- * Class for handling bt connection.
- * Example by Kalle.
+ * Class for handling bluetooth connection.
  */
 
-public class BluetoothConnect {
+public class BluetoothHandler {
 
-    private BluetoothAdapter btAdapter;
+    private final String BT = "Bluetooth";
+    private final BluetoothAdapter btAdapter;
 
-    Handler mHandler = new Handler() {
+    private static final Handler messageHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            byte[] writeBuf = (byte[]) msg.obj;
-            int begin = (int) msg.arg1;
-            int end = (int) msg.arg2;
+            byte[] writeBuffer = (byte[]) msg.obj;
+            int begin = msg.arg1;
+            int end = msg.arg2;
             switch (msg.what) {
                 case 1:
-                    String writeMessage = new String(writeBuf);
+                    String writeMessage = new String(writeBuffer);
                     writeMessage = writeMessage.substring(begin, end);
                     break;
             }
         }
     };
 
-    public BluetoothConnect(Context applicationContext) {
-         btAdapter = BluetoothAdapter.getDefaultAdapter();
+    /**
+     * Constructor that checks if there is a bluetooth adapter and asks the user to enable if it is off.
+     */
+    public BluetoothHandler(Context applicationContext) {
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
-            // Device does not support Bluetooth! Show error msg!!!
-            return;
+            Toast.makeText(applicationContext, "This device is missing BT adapter", Toast.LENGTH_LONG).show();
         } else if (!btAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             ((Activity) applicationContext).startActivityForResult(enableBtIntent, 0);
+        } else {
+            startTransfer();
         }
     }
 
+    /**
+     * Starts a thread for connecting via bt.
+     */
     public void startTransfer() {
+        Log.d(BT, "STARTED TRANSFER!");
         Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
+
+        String name = btAdapter.getName();
+        Log.d(BT, name);
+
         BluetoothDevice device = null;
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice pairedDevice : pairedDevices) {
                 device = pairedDevice;
+                Log.d(BT, device.getName());
             }
         }
         ConnectThread mConnectThread = new ConnectThread(device);
         mConnectThread.start();
     }
 
-
+    /**
+     * Thread that handles connection to a device.
+     */
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
-        private final BluetoothDevice mmDevice;
         private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
         public ConnectThread(BluetoothDevice device) {
             BluetoothSocket tmpSocket = null;
-            mmDevice = device;
             try {
                 tmpSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
             mmSocket = tmpSocket;
         }
@@ -93,24 +106,20 @@ public class BluetoothConnect {
                 return;
             }
 
-            ConnectedThread mConnectedThread = new ConnectedThread(mmSocket);
-            mConnectedThread.start();
-        }
-
-        public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) {
-            }
+            TransferThread mTransferThread = new TransferThread(mmSocket);
+            mTransferThread.start();
         }
     }
 
-    private class ConnectedThread extends Thread {
+    /**
+     * Thread that handles transfers to a device.
+     */
+    private class TransferThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
-        public ConnectedThread(BluetoothSocket socket) {
+        public TransferThread(BluetoothSocket socket) {
             mmSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
@@ -132,7 +141,7 @@ public class BluetoothConnect {
                     bytes += mmInStream.read(buffer, bytes, buffer.length - bytes);
                     for (int i = begin; i < bytes; i++) {
                         if (buffer[i] == "#".getBytes()[0]) {
-                            mHandler.obtainMessage(1, begin, i, buffer).sendToTarget();
+                            messageHandler.obtainMessage(1, begin, i, buffer).sendToTarget();
                             begin = i + 1;
                             if (i == bytes - 1) {
                                 bytes = 0;
