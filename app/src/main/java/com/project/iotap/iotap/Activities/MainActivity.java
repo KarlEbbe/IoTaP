@@ -3,6 +3,8 @@ package com.project.iotap.iotap.Activities;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import com.project.iotap.iotap.Bluetooth.BluetoothConnect;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
@@ -18,19 +20,27 @@ import weka.classifiers.functions.SimpleLogistic;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Button btnTest;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //BluetoothConnect btc = new BluetoothConnect(getApplicationContext());
-        //WekaClassifier classifier = new WekaClassifier(getApplicationContext());
+        setupBtns();
 
-        try{
-            //classifier.createClassifier();
-        }catch(Exception e){
-            System.out.println("ERROR:");
-            System.out.println(e);
-        }
+        //WekaClassifier classifier = new WekaClassifier(getApplicationContext());
+    }
+
+    private void setupBtns() {
+
+        btnTest = (Button) findViewById(R.id.btnTest);
+        btnTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //just some testing code for the bt.
+                BluetoothConnect btc = new BluetoothConnect(getApplicationContext());
+            }
+        });
     }
 }
