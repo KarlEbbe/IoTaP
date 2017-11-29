@@ -42,15 +42,13 @@ public class BluetoothConnect {
 
 
     public BluetoothConnect(Context applicationContext) {
-        BluetoothConnect btc = new BluetoothConnect(applicationContext);
-
         // Check if device support Bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
-            // Device does not support Bluetooth! Show error msg 
+            // Device does not support Bluetooth! Show error msg
         } else if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            // startActivityForResult(enableBtIntent, 1);
+
             ((Activity) applicationContext).startActivityForResult(enableBtIntent, 0);
             Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
             BluetoothDevice mDevice = null;
@@ -67,17 +65,16 @@ public class BluetoothConnect {
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
-        //       private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
         private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
         public ConnectThread(BluetoothDevice device) {
-            BluetoothSocket tmp = null;
+            BluetoothSocket tmpSocket = null;
             mmDevice = device;
             try {
-                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                tmpSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) {
             }
-            mmSocket = tmp;
+            mmSocket = tmpSocket;
         }
 
         public void run() {
