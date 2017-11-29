@@ -3,9 +3,12 @@ package com.project.iotap.iotap.Bluetooth;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -24,7 +27,6 @@ import java.util.UUID;
 
 public class BluetoothHandler {
 
-    private final String BT = "Bluetooth";
     private final BluetoothAdapter btAdapter;
 
     private static final Handler messageHandler = new Handler() {
@@ -45,38 +47,48 @@ public class BluetoothHandler {
     /**
      * Constructor that checks if there is a bluetooth adapter and asks the user to enable if it is off.
      */
-    public BluetoothHandler(Context applicationContext) {
+    public BluetoothHandler(Context activityContext) {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        activityContext.registerReceiver(mReceiver, filter);
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
-            Toast.makeText(applicationContext, "This device is missing BT adapter", Toast.LENGTH_LONG).show();
+            Toast.makeText(activityContext, "This device is missing BT adapter", Toast.LENGTH_LONG).show();
         } else if (!btAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            ((Activity) applicationContext).startActivityForResult(enableBtIntent, 0);
-        } else {
-            startTransfer();
+            ((Activity) activityContext).startActivityForResult(enableBtIntent, 0);
         }
     }
 
-    /**
-     * Starts a thread for connecting via bt.
-     */
-    public void startTransfer() {
-        Log.d(BT, "STARTED TRANSFER!");
-        Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-        String name = btAdapter.getName();
-        Log.d(BT, name);
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                //Device found
+            } else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                //Device is now connected
+                Toast.makeText(context, device.getName() + " is now Connected!", Toast.LENGTH_LONG).show();
+                if (device.getName().equals("MotionSensor")) {
+                    //Here we can check the name or address of the device.
+                    //If it matches our sensor, we should start to try and receive data from it!
+                    //For now, I will just start the connect thread outside this if statement for testing purposes:
+                }
+                ConnectThread mConnectThread = new ConnectThread(device);
+                mConnectThread.start();
 
-        BluetoothDevice device = null;
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice pairedDevice : pairedDevices) {
-                device = pairedDevice;
-                Log.d(BT, device.getName());
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                //Done searching
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+                //Device is about to disconnect
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                //Device has disconnected
             }
         }
-        ConnectThread mConnectThread = new ConnectThread(device);
-        mConnectThread.start();
-    }
+    };
 
     /**
      * Thread that handles connection to a device.
@@ -168,5 +180,9 @@ public class BluetoothHandler {
             } catch (IOException e) {
             }
         }
+    }
+
+    public void shutDown() {
+        //Should terminate the threads, connection and exit gracefully.
     }
 }

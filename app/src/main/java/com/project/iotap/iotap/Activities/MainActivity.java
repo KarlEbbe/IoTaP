@@ -13,7 +13,7 @@ import com.project.iotap.iotap.R;
 public class MainActivity extends AppCompatActivity {
 
     private Button btnTest;
-    private BluetoothHandler btc;
+    private BluetoothHandler btc = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +32,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //just some testing code for the bt.
-                btc = new BluetoothHandler(MainActivity.this);
+                if (btc == null){
+                    btc = new BluetoothHandler(MainActivity.this);
+                }else{
+                    btc.shutDown();
+                }
+
             }
         });
     }
@@ -45,12 +50,10 @@ public class MainActivity extends AppCompatActivity {
         String msg = "";
         if (resultCode == RESULT_OK) {
             msg = "BT turned on!";
-            btc.startTransfer();
         }
         if (resultCode == RESULT_CANCELED) {
             msg = "BT turned off!";
         }
-
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
 }
