@@ -6,6 +6,8 @@ package com.project.iotap.iotap.MachineLearning;
  * for using Weka with java.
  */
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -14,16 +16,18 @@ import java.io.FileWriter;
 import weka.classifiers.trees.J48;
 import weka.core.Instances;
 
+import static java.sql.DriverManager.println;
+
 public class WekaClassifier {
     public static void main(String[] args) throws Exception {
         // load training data
         BufferedReader breader = null;
-        breader = new BufferedReader(new FileReader("/train.arff"));
+        breader = new BufferedReader(new FileReader("/Data/training.arff"));
         Instances train = new Instances(breader);
         train.setClassIndex(train.numAttributes() - 1);
 
         // load test data
-        breader = new BufferedReader(new FileReader("/test1.arff"));
+        breader = new BufferedReader(new FileReader("/Data/training.arff"));
         Instances test = new Instances(breader);
         test.setClassIndex(test.numAttributes() - 1);
 
@@ -36,18 +40,21 @@ public class WekaClassifier {
         tree.buildClassifier(train);
 
         //label the test data
+        println("TEST");
         int classIndex = train.numAttributes() - 1;
         Instances labeled = new Instances(test);
         for (int i = 0; i < test.numInstances(); i++) {
             double clsLabel = tree.classifyInstance(test.instance(i));
             labeled.instance(i).setClassValue(clsLabel);
-            System.out.println(labeled.instance(i).attribute(classIndex).value((int) clsLabel));
+            println(labeled.instance(i).attribute(classIndex).value((int) clsLabel));
         }
 //  save labeled data
+
         BufferedWriter writer = new BufferedWriter(
-                new FileWriter("/Users/ag6031/Dropbox/IOTAP/Teaching/IoTaP Course/Labs/Lab 3/labeled.arff"));
+                new FileWriter("/Users/Strandberg95/Desktop/Repo/IoTaP/app/src/main/java/com/project/iotap/iotap/Data/text"));
         writer.write(labeled.toString());
         writer.close();
+
 
     }
 }

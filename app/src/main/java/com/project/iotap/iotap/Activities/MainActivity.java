@@ -17,9 +17,16 @@ import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
 
+import weka.classifiers.functions.SimpleLogistic;
+
 public class MainActivity extends AppCompatActivity {
 
     BluetoothAdapter mBluetoothAdapter;
+
+
+    public MainActivity(){
+
+    }
 
     Handler mHandler = new Handler() {
         @Override
