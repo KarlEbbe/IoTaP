@@ -28,6 +28,7 @@ import java.util.UUID;
 public class BluetoothHandler {
 
     private final BluetoothAdapter btAdapter;
+    private boolean running = false;
 
     private static final Handler messageHandler = new Handler() {
         @Override
@@ -52,11 +53,32 @@ public class BluetoothHandler {
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         activityContext.registerReceiver(mReceiver, filter);
         btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        //Got some alternatives here, either we let the user turn it off or we do it in code.
+       /*
         if (btAdapter == null) {
             Toast.makeText(activityContext, "This device is missing BT adapter", Toast.LENGTH_LONG).show();
         } else if (!btAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             ((Activity) activityContext).startActivityForResult(enableBtIntent, 0);
+        }
+        */
+
+        if (btAdapter == null) {
+            Toast.makeText(activityContext, "This device is missing BT adapter", Toast.LENGTH_LONG).show();
+        } else if (btAdapter.isEnabled()) {
+            //Not sure if we actually need this, depends on how the motionsensor work.
+            btAdapter.disable();
+            Toast.makeText(activityContext, "BT was on, resetting it...", Toast.LENGTH_LONG).show();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            btAdapter.enable();
+        } else {
+            Toast.makeText(activityContext, "BT was off, starting...", Toast.LENGTH_LONG).show();
+            btAdapter.enable();
         }
     }
 
@@ -118,6 +140,7 @@ public class BluetoothHandler {
                 return;
             }
 
+            running = true;
             TransferThread mTransferThread = new TransferThread(mmSocket);
             mTransferThread.start();
         }
@@ -148,7 +171,7 @@ public class BluetoothHandler {
             byte[] buffer = new byte[1024];
             int begin = 0;
             int bytes = 0;
-            while (true) {
+            while (running) {
                 try {
                     bytes += mmInStream.read(buffer, bytes, buffer.length - bytes);
                     for (int i = begin; i < bytes; i++) {
@@ -184,5 +207,7 @@ public class BluetoothHandler {
 
     public void shutDown() {
         //Should terminate the threads, connection and exit gracefully.
+        running = false;
+        btAdapter.disable();
     }
 }

@@ -33,9 +33,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //just some testing code for the bt.
                 if (btc == null){
+                    Toast.makeText(getApplicationContext(), "New BluetoothHandler", Toast.LENGTH_LONG).show();
                     btc = new BluetoothHandler(MainActivity.this);
                 }else{
+                    Toast.makeText(getApplicationContext(), "Cancel BluetoothHandler", Toast.LENGTH_LONG).show();
                     btc.shutDown();
+                    btc = null;
                 }
 
             }
