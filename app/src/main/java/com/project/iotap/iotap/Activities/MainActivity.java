@@ -7,13 +7,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.project.iotap.iotap.Bluetooth.OldBTNotUsed;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.R;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button btnTest;
-    private BluetoothHandler btc = null;
+    private BluetoothHandler testBtc = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +30,13 @@ public class MainActivity extends AppCompatActivity {
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (btc == null){
-                    Toast.makeText(getApplicationContext(), "New BluetoothHandler", Toast.LENGTH_LONG).show();
-                    btc = new BluetoothHandler(MainActivity.this);
+                if (testBtc == null){
+                    Toast.makeText(getApplicationContext(), "New BT Handler", Toast.LENGTH_LONG).show();
+                    testBtc = new BluetoothHandler(MainActivity.this);
                 }else{
-                    Toast.makeText(getApplicationContext(), "Cancel BluetoothHandler", Toast.LENGTH_LONG).show();
-                    btc = null;
+                    Toast.makeText(getApplicationContext(), "Cancel BT Handler", Toast.LENGTH_LONG).show();
+                    //Perhaps some cancel method in the BT Handler for stopping the thread.
+                    testBtc = null;
                 }
             }
         });
