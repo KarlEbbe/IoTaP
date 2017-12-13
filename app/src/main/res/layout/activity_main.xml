@@ -4,19 +4,58 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.project.iotap.iotap.Activities.MainActivity">
+    tools:context="com.project.iotap.iotap.Activities.MainActivity"
+    tools:layout_editor_absoluteY="81dp">
+
+    <EditText
+        android:id="@+id/textMessage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="210dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginTop="32dp"
+        android:ems="10"
+        android:hint="Enter message"
+        android:inputType="textPersonName"
+        android:paddingLeft="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnTest"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/send"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="78dp"
+        android:layout_marginEnd="13dp"
+        android:layout_marginTop="37dp"
+        android:text="Send Message"
+        app:layout_constraintBottom_toTopOf="@+id/Greet"
+        app:layout_constraintEnd_toStartOf="@+id/textMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/Greet"
+        android:layout_width="200dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="43dp"
+        android:text="Greet"
+        app:layout_constraintBottom_toTopOf="@+id/btnTest"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/send" />
 
     <Button
         android:id="@+id/btnTest"
-        android:layout_width="266dp"
-        android:layout_height="115dp"
-        android:layout_marginBottom="40dp"
-        android:layout_marginEnd="62dp"
-        android:layout_marginStart="62dp"
+        android:layout_width="200dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="29dp"
         android:text="Test BT"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textMessage" />
 
 </android.support.constraint.ConstraintLayout>
