@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.project.iotap.iotap.Bluetooth.OldBTNotUsed;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.R;
 

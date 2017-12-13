@@ -4,24 +4,20 @@ import android.bluetooth.BluetoothAdapter;
 
 import com.project.iotap.iotap.Activities.MainActivity;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Created by Anton on 2017-12-08.
- *
  */
 
 
@@ -34,41 +30,71 @@ public class BluetoothHandler {
     private ConnectThread connectThread = null;
     private ReadAndWriteThread readAndWriteThread = null;
 
+    //30x6 values for each row.
+    //So we get 30 rows, with 6 values on each row representing AccX, AccY, AccZ, GyX, GyY, GyZ
+    private final int[][] gestureReading = new int[30][6];
 
-    private static Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            byte[] writeBuf = (byte[]) msg.obj;
-            int begin = (int) msg.arg1;
-            int end = (int) msg.arg2;
+    /**
+     * Handler that parses data from bluetooth motion sensor.
+     */
+    private final Handler bluetoothIn = new Handler() {
 
-            int[] intArray = convertToIntArray((byte[])msg.obj);
-            Log.d(TAG, Arrays.toString(intArray));
+        private int rowCounter = 0;
 
-            switch (msg.what) {
-                case 1:
-                    String writeMessage = new String(writeBuf);
-                    writeMessage = writeMessage.substring(begin, end);
-                    break;
+        private StringBuilder appendedBTMessage = new StringBuilder(20);
+
+        public void handleMessage(android.os.Message msg) {
+
+            if (msg.what == 1) {
+                String readMessage = (String) msg.obj;
+                //Log.d("HANDLER", "readMessage: " + readMessage);
+                appendedBTMessage.append(readMessage);
+                //Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
+
+                if(readMessage.contains("h") && appendedBTMessage.length() >=13 ){
+                    String formattedString = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
+
+                    //Log.d("We are here", "lel last index of h is" + appendedBTMessage.lastIndexOf("h"));
+                    //Save the current appendedBTMessage and clear it and append
+                    String[] strArray = formattedString.split(",");
+                    int[] intArray = new int[6];
+
+                    int columnIndex = 0;
+                    for (String aStrArray : strArray) {
+                        try {
+                            int x = Integer.parseInt(aStrArray);
+                            intArray[columnIndex] = x;
+                            //Log.d("Array", String.valueOf(x));
+                            columnIndex++;
+                        } catch (NumberFormatException e) {
+                            //Do nothing, we only care about numbers.
+                        }
+                    }
+                    gestureReading[rowCounter++] = intArray;
+
+                    appendedBTMessage = new StringBuilder(20);
+                    appendedBTMessage.append(readMessage);
+                }
+
+                if(rowCounter >= 25){ //Number of rows to read. This varies between 25 and 30. Might need to implement something else.
+
+                    for(int[] iArray: gestureReading){
+                        StringBuilder currentRow = new StringBuilder();
+                        for(int j : iArray){
+                            currentRow.append(String.valueOf(j)).append(",");
+                        }
+                        Log.d("gestureArray", currentRow +  "\n");
+                    }
+                    //Now we are done. The gesture data for one gesture is now put into the gestureReading array. Now maybe we should do a callback or somehing.
+                    try {
+                        Thread.sleep(100000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     };
-
-
-    public static int[] convertToIntArray(byte[] input)
-    {
-        int[] ret = new int[input.length];
-        for (int i = 0; i < input.length; i++)
-        {
-            if(input[i]== 0){
-                ret[i] = -1111111111;
-            }else{
-                ret[i] = input[i];
-
-            }
-        }
-        return ret;
-    }
 
     public BluetoothHandler(MainActivity activityContext) {
         Log.d(TAG, "BTHandler started...");
@@ -89,13 +115,13 @@ public class BluetoothHandler {
 
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-                if(device.getName().equals("G6")){
+                if (device.getName().equals("G6")) {
                     btDevice = device;
                 }
             }
         }
 
-        if(btDevice == null){
+        if (btDevice == null) {
             Log.d(TAG, "Device G6 wasn't paired.");
             return;
         }
@@ -147,7 +173,6 @@ public class BluetoothHandler {
         }
     }
 
-
     private class ReadAndWriteThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
@@ -162,6 +187,7 @@ public class BluetoothHandler {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {
+                Log.d(TAG, "Error when opening streams" + e.getMessage());
             }
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
@@ -170,33 +196,15 @@ public class BluetoothHandler {
         public void run() {
             Log.d(TAG, "Now connected and ready to read:");
             byte[] buffer = new byte[1024];
-            int begin = 0;
-            int bytes = 0;
+            int bytes;
+
             while (true) {
                 try {
-                    bytes += mmInStream.read(buffer, bytes, buffer.length - bytes);
-                    for (int i = begin; i < bytes; i++) {
-
-                        if (buffer[i] == "h".getBytes()[0]) {
-                            Log.d(TAG, "small 'h' detected!");
-
-                            mHandler.obtainMessage(1, begin, i, buffer).sendToTarget();
-                            begin = i + 1;
-                            if (i == bytes - 1) {
-                                bytes = 0;
-                                begin = 0;
-                                Log.d(TAG,"Old reset");
-                            }
-                            if(i > 0){
-
-                            }
-                        }
-
-                        //Log.d(TAG, String.valueOf(buffer[i]));
-                    }
-                    //buffer = new byte[1024];
+                    bytes = mmInStream.read(buffer);            //read bytes from input buffer
+                    String readMessage = new String(buffer, 0, bytes);
+                    bluetoothIn.obtainMessage(1, bytes, -1, readMessage).sendToTarget();
                 } catch (IOException e) {
-                    Log.d(TAG, "Error when reading from inputStream" + e.getMessage());
+                    Log.d(TAG, "Error when reading from stream" + e.getMessage());
                     break;
                 }
             }
