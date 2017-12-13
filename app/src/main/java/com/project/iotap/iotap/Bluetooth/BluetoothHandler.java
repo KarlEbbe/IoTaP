@@ -30,9 +30,11 @@ public class BluetoothHandler {
     private ConnectThread connectThread = null;
     private ReadAndWriteThread readAndWriteThread = null;
 
+    private BTCallback bluetoothCallback;
+
     //30x6 values for each row.
     //So we get 30 rows, with 6 values on each row representing AccX, AccY, AccZ, GyX, GyY, GyZ
-    private final int[][] gestureReading = new int[30][6];
+    private int[][] rawGestureData = new int[30][6];
 
     /**
      * Handler that parses data from bluetooth motion sensor.
@@ -70,7 +72,7 @@ public class BluetoothHandler {
                             //Do nothing, we only care about numbers.
                         }
                     }
-                    gestureReading[rowCounter++] = intArray;
+                    rawGestureData[rowCounter++] = intArray;
 
                     appendedBTMessage = new StringBuilder(20);
                     appendedBTMessage.append(readMessage);
@@ -78,26 +80,34 @@ public class BluetoothHandler {
 
                 if(rowCounter >= 25){ //Number of rows to read. This varies between 25 and 30. Might need to implement something else.
 
-                    for(int[] iArray: gestureReading){
+                    for(int[] iArray: rawGestureData){
                         StringBuilder currentRow = new StringBuilder();
                         for(int j : iArray){
                             currentRow.append(String.valueOf(j)).append(",");
                         }
                         Log.d("gestureArray", currentRow +  "\n");
                     }
-                    //Now we are done. The gesture data for one gesture is now put into the gestureReading array. Now maybe we should do a callback or somehing.
+                    //Now we are done. The gesture data for one gesture is now put into the rawGestureData array. Now maybe we should do a callback or somehing.
                     try {
-                        Thread.sleep(100000);
+                        Thread.sleep(20000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    bluetoothCallback.rawGestureDataCB(rawGestureData);
+
+                    //Clear all the data:
+                    rawGestureData = new int[30][6];
+                    appendedBTMessage = new StringBuilder(20);
+                    rowCounter = 0;
+
                 }
             }
         }
     };
 
-    public BluetoothHandler(MainActivity activityContext) {
+    public BluetoothHandler(MainActivity activityContext, BTCallback bluetoothCallback) {
         Log.d(TAG, "BTHandler started...");
+        this.bluetoothCallback = bluetoothCallback;
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
             Log.d(TAG, "Device does not support BT");
@@ -105,13 +115,13 @@ public class BluetoothHandler {
         }
 
         if (!btAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            (activityContext).startActivityForResult(enableBtIntent, 0);
+            //Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            //(activityContext).startActivityForResult(enableBtIntent, 0);
+            btAdapter.enable();
         }
 
         BluetoothDevice btDevice = null;
         Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
-
 
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
@@ -125,7 +135,6 @@ public class BluetoothHandler {
             Log.d(TAG, "Device G6 wasn't paired.");
             return;
         }
-
         connectThread = new ConnectThread(btDevice);
         connectThread.start();
     }

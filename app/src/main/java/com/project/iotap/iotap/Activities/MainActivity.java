@@ -3,11 +3,13 @@ package com.project.iotap.iotap.Activities;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.Mqtt.Constants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText text;
 
     private MqttAndroidClient client;
-    private String TAG = "MainActivity";
+    private final String TAG = "MainActivity";
     private PahoMqttClient pahoMqttClient;
 
     @Override
@@ -92,17 +94,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (testBtc == null){
-                    Toast.makeText(getApplicationContext(), "New BT Handler", Toast.LENGTH_LONG).show();
-                    testBtc = new BluetoothHandler(MainActivity.this);
+                    Toast.makeText(getApplicationContext(), "Try connecting...", Toast.LENGTH_LONG).show();
+
+                    testBtc = new BluetoothHandler(MainActivity.this, new BTCallback() {
+                        @Override
+                        public void rawGestureDataCB(int[][] rawGestureData) {
+                            Log.d(TAG, "Callback for gesture data fired!");
+                        }
+                    });
                 }else{
-                    Toast.makeText(getApplicationContext(), "Cancel BT Handler", Toast.LENGTH_LONG).show();
-                    //Perhaps some cancel method in the BT Handler for stopping the thread.
+                    Toast.makeText(getApplicationContext(), "Cancel connecting...", Toast.LENGTH_LONG).show();
+                    //Perhaps some cancel method in the BT Handler for stopping the threads.
                     testBtc = null;
                 }
             }
         });
-
-
     }
 
     //Executes when user has turned bt on or off. Probably not needed.
