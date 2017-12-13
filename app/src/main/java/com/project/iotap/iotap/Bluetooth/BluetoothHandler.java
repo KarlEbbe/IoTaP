@@ -34,7 +34,7 @@ public class BluetoothHandler {
 
     //30x6 values for each row.
     //So we get 30 rows, with 6 values on each row representing AccX, AccY, AccZ, GyX, GyY, GyZ
-    private int[][] rawGestureData = new int[30][6];
+    private int[][] rawGestureData = new int[20][6];
 
     /**
      * Handler that parses data from bluetooth motion sensor.
@@ -45,13 +45,23 @@ public class BluetoothHandler {
 
         private StringBuilder appendedBTMessage = new StringBuilder(20);
 
+        private Boolean initiated = false;
+
         public void handleMessage(android.os.Message msg) {
 
             if (msg.what == 1) {
                 String readMessage = (String) msg.obj;
-                //Log.d("HANDLER", "readMessage: " + readMessage);
-                appendedBTMessage.append(readMessage);
-                //Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
+                Log.d("HANDLER", "readMessage: " + readMessage);
+
+                if(!initiated){
+                    appendedBTMessage.append(readMessage);
+                    if(appendedBTMessage.toString().startsWith("window size = 20")){
+                        appendedBTMessage.delete(0,16);
+                        initiated = true;
+                    }
+                }
+
+                Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
 
                 if(readMessage.contains("h") && appendedBTMessage.length() >=13 ){
                     String formattedString = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
@@ -78,7 +88,7 @@ public class BluetoothHandler {
                     appendedBTMessage.append(readMessage);
                 }
 
-                if(rowCounter >= 25){ //Number of rows to read. This varies between 25 and 30. Might need to implement something else.
+                if(rowCounter == 20){ //Number of rows to read.
 
                     for(int[] iArray: rawGestureData){
                         StringBuilder currentRow = new StringBuilder();
@@ -93,13 +103,12 @@ public class BluetoothHandler {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    bluetoothCallback.rawGestureDataCB(rawGestureData);
 
+                    bluetoothCallback.rawGestureDataCB(rawGestureData);
                     //Clear all the data:
                     rawGestureData = new int[30][6];
                     appendedBTMessage = new StringBuilder(20);
                     rowCounter = 0;
-
                 }
             }
         }
@@ -206,6 +215,7 @@ public class BluetoothHandler {
             Log.d(TAG, "Now connected and ready to read:");
             byte[] buffer = new byte[1024];
             int bytes;
+            write( "w20".getBytes()); //Configures sensor to only send 20 samples.
 
             while (true) {
                 try {
