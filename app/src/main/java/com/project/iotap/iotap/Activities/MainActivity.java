@@ -23,30 +23,34 @@ import java.io.UnsupportedEncodingException;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnTest;
-    private BluetoothHandler testBtc = null;
+    private final static String TAG = "MainActivity";
 
+    private Button btnTest;
     private Button btnGreet;
     private Button btnSend;
-
     private EditText text;
 
+    private BluetoothHandler bluetoothHandler;
+
     private MqttAndroidClient client;
-    private final String TAG = "MainActivity";
     private PahoMqttClient pahoMqttClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         text = (EditText) findViewById(R.id.textMessage);
+        setupBtButton();
+        setupMqtt();
 
+        //WekaClassifier classifier = new WekaClassifier(getApplicationContext());
+    }
+
+    /**
+     * Setups MQTT
+     */
+    private void setupMqtt() {
         this.pahoMqttClient = new PahoMqttClient();
-
-
-        //setupMqtt();
-        setupBtns();
         this.client = pahoMqttClient.getMqttClient(getApplicationContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
 
         btnGreet = (Button) findViewById(R.id.Greet);
@@ -76,52 +80,33 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
         Intent intent = new Intent(MainActivity.this, MqttMessageService.class);
         startService(intent);
-        //WekaClassifier classifier = new WekaClassifier(getApplicationContext());
     }
 
-    private void setupMqtt(){
-
-
-    }
-
-    //Adds click listeners to the buttons.
-    private void setupBtns() {
+    /**
+     * Setups the bluetooth button with listeners.
+     */
+    private void setupBtButton() {
         btnTest = (Button) findViewById(R.id.btnTest);
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (testBtc == null){
+                if (bluetoothHandler == null){
                     Toast.makeText(getApplicationContext(), "Try connecting...", Toast.LENGTH_LONG).show();
-
-                    testBtc = new BluetoothHandler(MainActivity.this, new BTCallback() {
+                    bluetoothHandler = new BluetoothHandler(new BTCallback() {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
                             Log.d(TAG, "Callback for gesture data fired!");
+                            Toast.makeText(getApplicationContext(), "GESTURE DETECTED!!!", Toast.LENGTH_LONG).show();
                         }
                     });
                 }else{
                     Toast.makeText(getApplicationContext(), "Cancel connecting...", Toast.LENGTH_LONG).show();
-                    //Perhaps some cancel method in the BT Handler for stopping the threads.
-                    testBtc = null;
+                    bluetoothHandler.cancel();
+                    bluetoothHandler = null;
                 }
             }
         });
-    }
-
-    //Executes when user has turned bt on or off. Probably not needed.
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        String msg = "";
-        if (resultCode == RESULT_OK) {
-            msg = "BT turned on!";
-        }
-        if (resultCode == RESULT_CANCELED) {
-            msg = "BT turned off!";
-        }
-        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
 }
