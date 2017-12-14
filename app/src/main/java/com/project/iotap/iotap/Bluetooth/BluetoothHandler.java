@@ -150,6 +150,7 @@ public class BluetoothHandler {
 
                 Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
 
+
                 if(readMessage.contains("h") && appendedBTMessage.length() >=13 ){
                     String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
 
@@ -222,6 +223,73 @@ public class BluetoothHandler {
         private void resetForNewReading() {
             rawGestureData = new int[30][6];
             appendedBTMessage = new StringBuilder(20);
+            rowCounter = 0;
+        }
+    };
+
+
+    /**
+     * EXPERIMENTAL
+     */
+    @SuppressLint("HandlerLeak")
+    private final Handler experimental2 = new Handler() {
+
+        private int rowCounter = 0;
+        private int colCounter = 0;
+
+        public void handleMessage(Message msg) {
+
+            if (msg.what == 1) { //Check if this is really necessary.
+                String readMessage = (String) msg.obj;
+
+                insertMeasurementValuesIntoArray(readMessage);
+
+
+                //Just for debugging, prints the aquired data for the collected gesture.
+                if(rowCounter == nbrRowsToRead){
+                    for(int[] row: rawGestureData){
+                        StringBuilder currentRow = new StringBuilder();
+                        for(int measurementData : row){
+                            currentRow.append(String.valueOf(measurementData)).append(",");
+                        }
+                        Log.d("gestureArray", currentRow +  "\n");
+                    }
+
+                    //Just some sleep for debugging purposes. To be deleted in final project.
+                    try {
+                        Thread.sleep(20000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    bluetoothCallback.rawGestureDataCB(rawGestureData);
+                    resetForNewReading();
+                }
+            }
+        }
+
+        //Inserts new data as long as possible.
+        private void insertMeasurementValuesIntoArray(String readMessage) {
+            Log.d("HANDLER", "readMessage: " + readMessage);
+            String[] strArray = readMessage.split(",");
+
+            for (String aStrArray : strArray) {
+                try {
+                    int x = Integer.parseInt(aStrArray);
+                    rawGestureData[rowCounter][colCounter++] = x;
+                    if(colCounter == 6){
+                        rowCounter++;
+                        colCounter = 0;
+                    }
+                } catch (NumberFormatException ignored) {
+                    //Do nothing, we only care about numbers.
+                }
+            }
+        }
+
+        private void resetForNewReading() {
+            rawGestureData = new int[30][6];
+            rowCounter = 0;
             rowCounter = 0;
         }
     };
