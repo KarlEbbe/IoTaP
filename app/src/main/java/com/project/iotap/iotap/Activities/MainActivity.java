@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
+import com.project.iotap.iotap.MachineLearning.WekaClassifier;
 import com.project.iotap.iotap.Mqtt.Constants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
 import com.project.iotap.iotap.Mqtt.PahoMqttClient;
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     private MqttAndroidClient client;
     private PahoMqttClient pahoMqttClient;
+
+    private WekaClassifier wekaClassifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
