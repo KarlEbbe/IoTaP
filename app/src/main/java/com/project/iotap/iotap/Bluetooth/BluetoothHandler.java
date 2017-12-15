@@ -36,7 +36,104 @@ public class BluetoothHandler {
      * Handler that parses data from bluetooth motion sensor.
      */
     @SuppressLint("HandlerLeak")
-    private final Handler workingHandler = new Handler() {
+    private final Handler btMessageHandler = new Handler() {
+
+        private int rowCounter = 0;
+
+        private StringBuilder appendedBTMessage = new StringBuilder(20);
+
+        private Boolean initiated = false;
+
+        public void handleMessage(Message msg) {
+
+            if (msg.what == 1) { //Check if this is really necessary.
+                String readMessage = (String) msg.obj;
+                Log.d("HANDLER", "readMessage: " + readMessage);
+
+                if(!initiated){
+                    appendedBTMessage.append(readMessage);
+                    checkIfBeginningOfMessage();
+                }
+
+                Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
+
+                if(readMessage.contains("h") && appendedBTMessage.length() >=13 ){
+                    String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
+
+                    insertMeasurementValuesIntoArray(subStrAppended);
+
+                    appendedBTMessage = new StringBuilder(20);
+                    appendedBTMessage.append(readMessage);
+                }
+
+                //Just for debugging, prints the aquired data for the collected gesture.
+                if(rowCounter == nbrRowsToRead){
+                    for(int[] row: rawGestureData){
+                        StringBuilder currentRow = new StringBuilder();
+                        for(int measurementData : row){
+                            currentRow.append(String.valueOf(measurementData)).append(",");
+                        }
+                        Log.d("gestureArray", currentRow +  "\n");
+                    }
+
+                    //Just some sleep for debugging purposes. To be deleted in final project.
+                    try {
+                        Thread.sleep(20000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    bluetoothCallback.rawGestureDataCB(rawGestureData);
+                    resetForNewReading();
+                }
+            }
+        }
+
+        private void insertMeasurementValuesIntoArray(String formattedString) {
+            String[] strArray = formattedString.split(",");
+
+            int[] measurementData = new int[6];
+
+            int columnIndex = 0;
+            for (String aStrArray : strArray) {
+                try {
+                    int x = Integer.parseInt(aStrArray);
+                    measurementData[columnIndex] = x;
+                    columnIndex++;
+                } catch (NumberFormatException ignored) {
+                    //Do nothing, we only care about numbers.
+                }
+            }
+            rawGestureData[rowCounter++] = measurementData;
+        }
+
+        private void checkIfBeginningOfMessage() {
+            if(appendedBTMessage.toString().startsWith("window size = 20")){
+                appendedBTMessage.delete(0,16);
+                initiated = true;
+            }
+        }
+
+        private void resetForNewReading() {
+            rawGestureData = new int[30][6];
+            appendedBTMessage = new StringBuilder(20);
+            rowCounter = 0;
+        }
+    };
+
+
+
+
+
+
+
+
+
+    /**
+     * Handler that parses data from bluetooth motion sensor.
+     */
+    @SuppressLint("HandlerLeak")
+    private final Handler OLDSHOULDWORK = new Handler() {
 
         private int rowCounter = 0;
 
@@ -126,7 +223,7 @@ public class BluetoothHandler {
      * Experimental handler to taking a measurement with a timeout. TODO: FIX.
      */
     @SuppressLint("HandlerLeak")
-    private final Handler btMessageHandler = new Handler() {
+    private final Handler lololololol = new Handler() {
 
         private int rowCounter = 0;
 
@@ -466,6 +563,10 @@ public class BluetoothHandler {
 
 
     private void intiateDefaultValueForArray(){
-        Arrays.fill(rawGestureData, 50000);
+      for(int i = 0; i < rawGestureData.length; i++){
+            for(int j = 0; j < rawGestureData[i].length; j++){
+                rawGestureData[i][j] = 50000;
+            }
+        }
     }
 }

@@ -22,6 +22,7 @@ import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,6 +50,15 @@ public class MainActivity extends AppCompatActivity {
         setupMqtt();
         wekaClassifier = new WekaClassifier(getApplicationContext());
         dataNormalizer = new DataNormalizer();
+
+
+        test();
+    }
+
+    private void test() {
+        int[][] x = testRawGestureData();
+        dataNormalizer.processData(x);
+        wekaClassifier.classifyTuple(x);
     }
 
     /**
@@ -97,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (bluetoothHandler == null){
+                if (bluetoothHandler == null) {
                     Toast.makeText(getApplicationContext(), "Try connecting...", Toast.LENGTH_LONG).show();
                     bluetoothHandler = new BluetoothHandler(new BTCallback() {
                         @Override
@@ -112,12 +122,27 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                     });
-                }else{
+                } else {
                     Toast.makeText(getApplicationContext(), "Cancel connecting...", Toast.LENGTH_LONG).show();
                     bluetoothHandler.cancel();
                     bluetoothHandler = null;
                 }
             }
         });
+    }
+
+
+    private int[][] testRawGestureData() {
+        Random rand = new Random();
+
+        int[][] rawGestureData = new int[20][6];
+        for (int i = 2; i < rawGestureData.length; i++) {
+            for (int j = 0; j < rawGestureData[i].length; j++) {
+                int randomNbr = rand.nextInt(6000) - 2000;
+                rawGestureData[i][j] = randomNbr;
+            }
+        }
+
+        return rawGestureData;
     }
 }
