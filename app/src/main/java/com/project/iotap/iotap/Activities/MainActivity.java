@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
+import com.project.iotap.iotap.MachineLearning.DataNormalizer;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
 import com.project.iotap.iotap.Mqtt.Constants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private PahoMqttClient pahoMqttClient;
 
     private WekaClassifier wekaClassifier;
+    private DataNormalizer dataNormalizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +47,8 @@ public class MainActivity extends AppCompatActivity {
         text = (EditText) findViewById(R.id.textMessage);
         setupBtButton();
         setupMqtt();
-
-        //WekaClassifier classifier = new WekaClassifier(getApplicationContext());
+        wekaClassifier = new WekaClassifier(getApplicationContext());
+        dataNormalizer = new DataNormalizer();
     }
 
     /**
@@ -102,6 +104,12 @@ public class MainActivity extends AppCompatActivity {
                         public void rawGestureDataCB(int[][] rawGestureData) {
                             Log.d(TAG, "Callback for gesture data fired!");
                             Toast.makeText(getApplicationContext(), "GESTURE DETECTED!!!", Toast.LENGTH_LONG).show();
+
+
+                            dataNormalizer.processData(rawGestureData);
+                            wekaClassifier.classifyTuple(rawGestureData);
+
+
                         }
                     });
                 }else{
