@@ -35,7 +35,7 @@ public class BluetoothHandler {
      * Handler that parses data from bluetooth motion sensor.
      */
     @SuppressLint("HandlerLeak")
-    private final Handler btMessageHandler = new Handler() {
+    private final Handler workingHandler = new Handler() {
 
         private int rowCounter = 0;
 
@@ -121,10 +121,10 @@ public class BluetoothHandler {
     };
 
     /**
-     * EXPERIMENTAL HANDLER!
+     * Experimental handler to taking a measurement with a timeout. TODO: FIX.
      */
     @SuppressLint("HandlerLeak")
-    private final Handler EXPERIMENTAL = new Handler() {
+    private final Handler btMessageHandler = new Handler() {
 
         private int rowCounter = 0;
 
@@ -135,6 +135,20 @@ public class BluetoothHandler {
         private long startTime = 0L;
 
         public void handleMessage(Message msg) {
+
+            if(timeout()){
+                if(rowCounter<15){
+                    //Maybe a callback or something to mainActivity to notify the user.
+                }else if(rowCounter == nbrRowsToRead){
+                    bluetoothCallback.rawGestureDataCB(rawGestureData);
+                }
+
+                Log.d("ROWCOUNTED", String.valueOf(rowCounter));
+                startTime = System.currentTimeMillis();
+                printGestureData();
+                resetForNewReading();
+            }
+
             if (msg.what == 1) { 
                 String readMessage = (String) msg.obj;
                 Log.d("HANDLER", "readMessage: " + readMessage);
@@ -144,12 +158,7 @@ public class BluetoothHandler {
                     checkIfBeginningOfMessage();
                 }
 
-                if(startTime == 0L){
-                     startTime = System.currentTimeMillis();
-                }
-
                 Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
-
 
                 if(readMessage.contains("h") && appendedBTMessage.length() >=13 ){
                     String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
@@ -158,20 +167,6 @@ public class BluetoothHandler {
 
                     appendedBTMessage = new StringBuilder(20);
                     appendedBTMessage.append(readMessage);
-                }
-
-                //If less than 15 rows where measured in a timespan, tell the user to try again!
-                if(timeout()){
-                    if(rowCounter<15){
-                        //Maybe a callback or something to mainActivity to notify the user.
-                        Log.d("HANDLER", "TRY AGAIN, less than 15 readings within 1 sec");
-                        printGestureData();
-                        resetForNewReading();
-                    }else if(rowCounter == nbrRowsToRead){
-                        printGestureData();
-                        bluetoothCallback.rawGestureDataCB(rawGestureData);
-                        resetForNewReading();
-                    }
                 }
             }
         }
@@ -184,13 +179,24 @@ public class BluetoothHandler {
                 }
                 Log.d("gestureArray", currentRow +  "\n");
             }
+
+            //Just some sleep for debugging purposes. To be deleted in final project.
+         //   try {
+          //      Thread.sleep(20000);
+          //  } catch (InterruptedException e) {
+          //      e.printStackTrace();
+          //  }
         }
 
         private boolean timeout() {
-            long estimatedTime = System.currentTimeMillis() - startTime;
 
-            if(estimatedTime > 1500){
-                return true;
+            if(startTime > 0){
+                long estimatedTime = System.currentTimeMillis() - startTime;
+                Log.d("TIME", "current time " + estimatedTime);
+                if(estimatedTime > 2000){
+                    Log.d("TIME", "TIME HAS RUN OUT ");
+                    return true;
+                }
             }
             return false;
         }
@@ -217,6 +223,7 @@ public class BluetoothHandler {
             if(appendedBTMessage.toString().startsWith("window size = 20")){
                 appendedBTMessage.delete(0,16);
                 initiated = true;
+                //startTime = System.currentTimeMillis();
             }
         }
 
@@ -224,6 +231,7 @@ public class BluetoothHandler {
             rawGestureData = new int[30][6];
             appendedBTMessage = new StringBuilder(20);
             rowCounter = 0;
+            startTime = 0;
         }
     };
 
@@ -232,15 +240,18 @@ public class BluetoothHandler {
      * EXPERIMENTAL
      */
     @SuppressLint("HandlerLeak")
-    private final Handler experimental2 = new Handler() {
+    private final Handler experimental = new Handler() {
 
         private int rowCounter = 0;
         private int colCounter = 0;
+
+        private StringBuilder appendedStr = new StringBuilder(140);
 
         public void handleMessage(Message msg) {
 
             if (msg.what == 1) { //Check if this is really necessary.
                 String readMessage = (String) msg.obj;
+                appendedStr.append(readMessage);
 
                 insertMeasurementValuesIntoArray(readMessage);
 
@@ -254,6 +265,8 @@ public class BluetoothHandler {
                         }
                         Log.d("gestureArray", currentRow +  "\n");
                     }
+                    Log.d("appendedSTRING!!!!", appendedStr.toString() );
+
 
                     //Just some sleep for debugging purposes. To be deleted in final project.
                     try {
@@ -278,7 +291,10 @@ public class BluetoothHandler {
                     int x = Integer.parseInt(aStrArray);
                     rawGestureData[rowCounter][colCounter++] = x;
                     if(colCounter == 6){
-                        rowCounter++;
+
+                        if(rowCounter<20){
+                            rowCounter++;
+                        }
                         colCounter = 0;
                     }
                 } catch (NumberFormatException ignored) {
