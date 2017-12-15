@@ -37,7 +37,7 @@ public class DataNormalizer {
         List<Pair<Integer, Integer>> missing = new LinkedList<>();
         for (int i = 0; i < data.length; i++) { // 0-19
             for (int j = 0; j < data[i].length; j++) { // 0-5
-                if (data[i][j] == 0) { // Remember the missing values.
+                if (data[i][j] == 50000) { // Remember the missing values.
                     missing.add(new Pair<>(i, j));
                 } else if (i != 0) { // Don't divide by 0.
                     average[j] = (average[j] * i + data[i][j]) / (i + 1);
