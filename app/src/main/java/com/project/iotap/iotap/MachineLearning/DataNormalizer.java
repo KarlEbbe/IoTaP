@@ -28,7 +28,7 @@ public class DataNormalizer {
 
     /**
      * Fills in missing values using the overall average for that value,
-     * e.g. if AccX7 is 0 then it will replace that value with the average for
+     * e.g. if AccX7 is 50000 then it will replace that value with the average for
      * all the other AccX.
      * @param data the raw sensor data
      */
