@@ -1,15 +1,19 @@
 package com.project.iotap.iotap.MachineLearning;
 
+import android.util.Log;
 import android.util.Pair;
+
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * A class for smoothing (filling out missing) data, as well as normalizing it.
+ *
  * @author Christoffer Nilsson.
  */
 public class DataNormalizer {
 
+    private static final String TAG = "DataNormalizer";
     private int min = 0;
     private int max = 100;
 
@@ -17,19 +21,27 @@ public class DataNormalizer {
      * Fills in missing values using the overall average for that value,
      * e.g. if AccX7 is 0 then it will replace that value with the average for
      * all the other AccX.
-     *
+     * <p>
      * Then normalizes all values between 0-100.
-     * @param data the raw sensor data
+     *
+     * @param rawGestureData the raw sensor data
      */
-    public void processData(int[][] data) {
-        fillMissingData(data);
-        normalizeData(data);
+    public void processData(int[][] rawGestureData) {
+        Log.d(TAG, "\n\nBefore processing data\n\n");
+        printData(rawGestureData);
+        fillMissingData(rawGestureData);
+        Log.d(TAG, "\n\nAfter filling in missing data\n\n");
+        printData(rawGestureData);
+        normalizeData(rawGestureData);
+        Log.d(TAG, "\n\nAfter Normalizing data\n\n");
+        printData(rawGestureData);
     }
 
     /**
      * Fills in missing values using the overall average for that value,
      * e.g. if AccX7 is 50000 then it will replace that value with the average for
      * all the other AccX.
+     *
      * @param data the raw sensor data
      */
     private void fillMissingData(int[][] data) {
@@ -57,6 +69,7 @@ public class DataNormalizer {
 
     /**
      * Normalizes data between 0-100.
+     *
      * @param data the smoothed data
      */
     private void normalizeData(int[][] data) {
@@ -69,6 +82,7 @@ public class DataNormalizer {
 
     /**
      * Checks to see if the current value is min or max.
+     *
      * @param value the value to check
      */
     private void checkMinMax(int value) {
@@ -82,10 +96,23 @@ public class DataNormalizer {
 
     /**
      * Normalizes the value to between 0-100.
+     *
      * @param value the value to normalize
      * @return the normalized value
      */
     private int normalize(int value) {
         return ((value - min) / (max - min)) * 100;
+    }
+
+
+    //Print the gesture array.
+    private void printData(int[][] rawGestureData) {
+        for (int[] row : rawGestureData) {
+            StringBuilder currentRow = new StringBuilder();
+            for (int measurementData : row) {
+                currentRow.append(String.valueOf(measurementData)).append(",");
+            }
+            Log.d(TAG, currentRow + "\n");
+        }
     }
 }

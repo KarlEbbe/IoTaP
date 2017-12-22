@@ -12,12 +12,12 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Created by Anton on 2017-12-08.
+ * Class that handles the connection and writing and reading data with motion sensor
  */
 
 public class BluetoothHandler {
@@ -39,265 +39,53 @@ public class BluetoothHandler {
     private final Handler btMessageHandler = new Handler() {
 
         private int rowCounter = 0;
-
-        private StringBuilder appendedBTMessage = new StringBuilder(20);
-
+        private StringBuilder appendedBTMessage = new StringBuilder(nbrRowsToRead);
         private Boolean initiated = false;
 
         public void handleMessage(Message msg) {
 
-            if (msg.what == 1) { //Check if this is really necessary.
-                String readMessage = (String) msg.obj;
-                Log.d("HANDLER", "readMessage: " + readMessage);
+            String readMessage = (String) msg.obj;
+            Log.d(TAG, "readMessage: " + readMessage);
 
-                if(!initiated){
-                    appendedBTMessage.append(readMessage);
-                    checkIfBeginningOfMessage();
-                }
+            appendedBTMessage.append(readMessage);
+            Log.d(TAG, "appendedBTMessage: " + appendedBTMessage);
 
-                Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
-
-                if(readMessage.contains("h") && appendedBTMessage.length() >=13 ){
-                    String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
-
-                    insertMeasurementValuesIntoArray(subStrAppended);
-
-                    appendedBTMessage = new StringBuilder(20);
-                    appendedBTMessage.append(readMessage);
-                }
-
-                //Just for debugging, prints the aquired data for the collected gesture.
-                if(rowCounter == nbrRowsToRead){
-                    for(int[] row: rawGestureData){
-                        StringBuilder currentRow = new StringBuilder();
-                        for(int measurementData : row){
-                            currentRow.append(String.valueOf(measurementData)).append(",");
-                        }
-                        Log.d("gestureArray", currentRow +  "\n");
-                    }
-
-                    //Just some sleep for debugging purposes. To be deleted in final project.
-                    try {
-                        Thread.sleep(20000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    bluetoothCallback.rawGestureDataCB(rawGestureData);
-                    resetForNewReading();
-                }
+            if (!initiated) {
+                checkIfBeginningOfMessage();
             }
-        }
 
-        private void insertMeasurementValuesIntoArray(String formattedString) {
-            String[] strArray = formattedString.split(",");
+            if (readMessage.contains("h") && appendedBTMessage.length() >= 13) {
+                String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
 
-            int[] measurementData = new int[6];
+                insertMeasurementValuesIntoArray(subStrAppended);
 
-            int columnIndex = 0;
-            for (String aStrArray : strArray) {
-                try {
-                    int x = Integer.parseInt(aStrArray);
-                    measurementData[columnIndex] = x;
-                    columnIndex++;
-                } catch (NumberFormatException ignored) {
-                    //Do nothing, we only care about numbers.
-                }
+                appendedBTMessage.delete(0, appendedBTMessage.lastIndexOf("h"));
             }
-            rawGestureData[rowCounter++] = measurementData;
-        }
 
-        private void checkIfBeginningOfMessage() {
-            if(appendedBTMessage.toString().startsWith("window size = 20")){
-                appendedBTMessage.delete(0,16);
-                initiated = true;
-            }
-        }
+            if (rowCounter == nbrRowsToRead) {
+                printDebugToBeRemoved();
 
-        private void resetForNewReading() {
-            rawGestureData = new int[30][6];
-            appendedBTMessage = new StringBuilder(20);
-            rowCounter = 0;
-        }
-    };
+                bluetoothCallback.rawGestureDataCB(rawGestureData);
 
-
-
-
-
-
-
-
-
-    /**
-     * Handler that parses data from bluetooth motion sensor.
-     */
-    @SuppressLint("HandlerLeak")
-    private final Handler OLDSHOULDWORK = new Handler() {
-
-        private int rowCounter = 0;
-
-        private StringBuilder appendedBTMessage = new StringBuilder(20);
-
-        private Boolean initiated = false;
-
-        public void handleMessage(Message msg) {
-
-            if (msg.what == 1) { //Check if this is really necessary.
-                String readMessage = (String) msg.obj;
-                Log.d("HANDLER", "readMessage: " + readMessage);
-
-                if (!initiated) {
-                    appendedBTMessage.append(readMessage);
-                    checkIfBeginningOfMessage();
-                }
-
-                Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
-
-                if (readMessage.contains("h") && appendedBTMessage.length() >= 13) {
-                    String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
-
-                    insertMeasurementValuesIntoArray(subStrAppended);
-
-                    appendedBTMessage = new StringBuilder(20);
-                    appendedBTMessage.append(readMessage);
-                }
-
-                //Just for debugging, prints the aquired data for the collected gesture.
-                if (rowCounter == nbrRowsToRead) {
-                    for (int[] row : rawGestureData) {
-                        StringBuilder currentRow = new StringBuilder();
-                        for (int measurementData : row) {
-                            currentRow.append(String.valueOf(measurementData)).append(",");
-                        }
-                        Log.d("gestureArray", currentRow + "\n");
-                    }
-
-                    //Just some sleep for debugging purposes. To be deleted in final project.
-                    try {
-                        Thread.sleep(20000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    bluetoothCallback.rawGestureDataCB(rawGestureData);
-                    resetForNewReading();
-                }
-            }
-        }
-
-        private void insertMeasurementValuesIntoArray(String formattedString) {
-            String[] strArray = formattedString.split(",");
-
-            int[] measurementData = new int[6];
-
-            int columnIndex = 0;
-            for (String aStrArray : strArray) {
-                try {
-                    int x = Integer.parseInt(aStrArray);
-                    measurementData[columnIndex] = x;
-                    columnIndex++;
-                } catch (NumberFormatException ignored) {
-                    //Do nothing, we only care about numbers.
-                }
-            }
-            rawGestureData[rowCounter++] = measurementData;
-        }
-
-        private void checkIfBeginningOfMessage() {
-            if (appendedBTMessage.toString().startsWith("window size = 20")) {
-                appendedBTMessage.delete(0, 16);
-                initiated = true;
-            }
-        }
-
-        private void resetForNewReading() {
-
-            intiateDefaultValueForArray();
-            appendedBTMessage = new StringBuilder(20);
-            rowCounter = 0;
-        }
-    };
-
-    /**
-     * Experimental handler to taking a measurement with a timeout. TODO: FIX.
-     */
-    @SuppressLint("HandlerLeak")
-    private final Handler lololololol = new Handler() {
-
-        private int rowCounter = 0;
-
-        private StringBuilder appendedBTMessage = new StringBuilder(20);
-
-        private Boolean initiated = false;
-
-        private long startTime = 0L;
-
-        public void handleMessage(Message msg) {
-
-            if (timeout()) {
-                if (rowCounter < 15) {
-                    //Maybe a callback or something to mainActivity to notify the user.
-                } else if (rowCounter == nbrRowsToRead) {
-                    bluetoothCallback.rawGestureDataCB(rawGestureData);
-                }
-
-                Log.d("ROWCOUNTED", String.valueOf(rowCounter));
-                startTime = System.currentTimeMillis();
-                printGestureData();
                 resetForNewReading();
             }
-
-            if (msg.what == 1) {
-                String readMessage = (String) msg.obj;
-                Log.d("HANDLER", "readMessage: " + readMessage);
-
-                if (!initiated) {
-                    appendedBTMessage.append(readMessage);
-                    checkIfBeginningOfMessage();
-                }
-
-                Log.d("HANDLER", "appendedBTMessage: " + appendedBTMessage);
-
-                if (readMessage.contains("h") && appendedBTMessage.length() >= 13) {
-                    String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
-
-                    insertMeasurementValuesIntoArray(subStrAppended);
-
-                    appendedBTMessage = new StringBuilder(20);
-                    appendedBTMessage.append(readMessage);
-                }
-            }
         }
 
-        private void printGestureData() {
+        //TODO: REMOVE!
+        private void printDebugToBeRemoved() {
             for (int[] row : rawGestureData) {
                 StringBuilder currentRow = new StringBuilder();
                 for (int measurementData : row) {
                     currentRow.append(String.valueOf(measurementData)).append(",");
                 }
-                Log.d("gestureArray", currentRow + "\n");
+                Log.d(TAG, currentRow + "\n");
             }
-
             //Just some sleep for debugging purposes. To be deleted in final project.
-            //   try {
-            //      Thread.sleep(20000);
-            //  } catch (InterruptedException e) {
-            //      e.printStackTrace();
-            //  }
-        }
-
-        private boolean timeout() {
-
-            if (startTime > 0) {
-                long estimatedTime = System.currentTimeMillis() - startTime;
-                Log.d("TIME", "current time " + estimatedTime);
-                if (estimatedTime > 2000) {
-                    Log.d("TIME", "TIME HAS RUN OUT ");
-                    return true;
-                }
-            }
-            return false;
+           // try {
+           //     Thread.sleep(10000);
+           // } catch (InterruptedException e) {
+           //     e.printStackTrace();
+           // }
         }
 
         private void insertMeasurementValuesIntoArray(String formattedString) {
@@ -322,7 +110,6 @@ public class BluetoothHandler {
             if (appendedBTMessage.toString().startsWith("window size = 20")) {
                 appendedBTMessage.delete(0, 16);
                 initiated = true;
-                //startTime = System.currentTimeMillis();
             }
         }
 
@@ -330,82 +117,7 @@ public class BluetoothHandler {
             intiateDefaultValueForArray();
             appendedBTMessage = new StringBuilder(20);
             rowCounter = 0;
-            startTime = 0;
-        }
-    };
 
-
-    /**
-     * EXPERIMENTAL
-     */
-    @SuppressLint("HandlerLeak")
-    private final Handler experimental = new Handler() {
-
-        private int rowCounter = 0;
-        private int colCounter = 0;
-
-        private StringBuilder appendedStr = new StringBuilder(140);
-
-        public void handleMessage(Message msg) {
-
-            if (msg.what == 1) { //Check if this is really necessary.
-                String readMessage = (String) msg.obj;
-                appendedStr.append(readMessage);
-
-                insertMeasurementValuesIntoArray(readMessage);
-
-
-                //Just for debugging, prints the aquired data for the collected gesture.
-                if (rowCounter == nbrRowsToRead) {
-                    for (int[] row : rawGestureData) {
-                        StringBuilder currentRow = new StringBuilder();
-                        for (int measurementData : row) {
-                            currentRow.append(String.valueOf(measurementData)).append(",");
-                        }
-                        Log.d("gestureArray", currentRow + "\n");
-                    }
-                    Log.d("appendedSTRING!!!!", appendedStr.toString());
-
-
-                    //Just some sleep for debugging purposes. To be deleted in final project.
-                    try {
-                        Thread.sleep(20000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    bluetoothCallback.rawGestureDataCB(rawGestureData);
-                    resetForNewReading();
-                }
-            }
-        }
-
-        //Inserts new data as long as possible.
-        private void insertMeasurementValuesIntoArray(String readMessage) {
-            Log.d("HANDLER", "readMessage: " + readMessage);
-            String[] strArray = readMessage.split(",");
-
-            for (String aStrArray : strArray) {
-                try {
-                    int x = Integer.parseInt(aStrArray);
-                    rawGestureData[rowCounter][colCounter++] = x;
-                    if (colCounter == 6) {
-
-                        if (rowCounter < 20) {
-                            rowCounter++;
-                        }
-                        colCounter = 0;
-                    }
-                } catch (NumberFormatException ignored) {
-                    //Do nothing, we only care about numbers.
-                }
-            }
-        }
-
-        private void resetForNewReading() {
-            intiateDefaultValueForArray();
-            rowCounter = 0;
-            rowCounter = 0;
         }
     };
 
@@ -477,6 +189,7 @@ public class BluetoothHandler {
                 }
                 return;
             }
+            intiateDefaultValueForArray();
             readAndWriteThread = new ReadAndWriteThread(mmSocket);
             readAndWriteThread.start();
         }
@@ -562,9 +275,9 @@ public class BluetoothHandler {
     }
 
 
-    private void intiateDefaultValueForArray(){
-      for(int i = 0; i < rawGestureData.length; i++){
-            for(int j = 0; j < rawGestureData[i].length; j++){
+    private void intiateDefaultValueForArray() {
+        for (int i = 0; i < rawGestureData.length; i++) {
+            for (int j = 0; j < rawGestureData[i].length; j++) {
                 rawGestureData[i][j] = 50000;
             }
         }

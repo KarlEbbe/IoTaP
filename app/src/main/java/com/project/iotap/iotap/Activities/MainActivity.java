@@ -48,11 +48,12 @@ public class MainActivity extends AppCompatActivity {
         text = (EditText) findViewById(R.id.textMessage);
         setupBtButton();
         setupMqtt();
-        wekaClassifier = new WekaClassifier(getApplicationContext());
         dataNormalizer = new DataNormalizer();
+        //wekaClassifier = new WekaClassifier(getApplicationContext());
 
 
-        test();
+
+        //test();
     }
 
     private void test() {
@@ -115,10 +116,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "Callback for gesture data fired!");
                             Toast.makeText(getApplicationContext(), "GESTURE DETECTED!!!", Toast.LENGTH_LONG).show();
 
-
                             dataNormalizer.processData(rawGestureData);
-                            wekaClassifier.classifyTuple(rawGestureData);
-
+//                            wekaClassifier.classifyTuple(rawGestureData);
 
                         }
                     });

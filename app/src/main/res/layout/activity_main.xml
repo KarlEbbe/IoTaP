@@ -50,9 +50,9 @@
     <Button
         android:id="@+id/btnTest"
         android:layout_width="200dp"
-        android:layout_height="0dp"
+        android:layout_height="70dp"
         android:layout_marginBottom="29dp"
-        android:text="Test BT"
+        android:text="Connect Motion Sensor"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
