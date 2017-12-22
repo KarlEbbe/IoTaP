@@ -39,6 +39,7 @@ public class WekaClassifier {
 
     public WekaClassifier(Context appContext) {
         this.appContext = appContext;
+        setupClassifier();
     }
 
     /**
@@ -75,7 +76,7 @@ public class WekaClassifier {
         }
     }
 
-    public void setupClassifier(){
+    private void setupClassifier(){
         Log.d(TAG, "Setting up classifier...");
         loadPrecomputedClassifier();
         setupAttributes();
@@ -133,6 +134,7 @@ public class WekaClassifier {
             Log.d(TAG, "Classifier loaded...");
         } catch (IOException e) {
             Log.d(TAG, "IO Exception when loading classifier: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
             Log.d(TAG, "Exception when loading classifier: " + e.getMessage());
         }
