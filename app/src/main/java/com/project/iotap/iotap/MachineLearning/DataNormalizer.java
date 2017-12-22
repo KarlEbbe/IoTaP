@@ -32,9 +32,56 @@ public class DataNormalizer {
         fillMissingData(rawGestureData);
         Log.d(TAG, "\n\nAfter filling in missing data\n\n");
         printData(rawGestureData);
-        normalizeData(rawGestureData);
+        normalizeData2(rawGestureData);
         Log.d(TAG, "\n\nAfter Normalizing data\n\n");
         printData(rawGestureData);
+    }
+
+    private void normalizeData2(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
+        int[][] calcArray = new int[21][6];
+        int[][] smoothedGestureData = new int[20][6];
+
+        for (int i = 0; i < rawGestureData.length; i++) {
+            for (int j = 0; j < rawGestureData[i].length; j++) {
+                calcArray[i][j] = rawGestureData[i][j];
+            }
+        }
+
+        calcArray[20][0] = rawGestureData[19][4];
+        calcArray[20][1] = rawGestureData[19][5];
+
+        for (int col = 0; col < 6; col++) {
+            int sum = 0;
+            int rowCounter = 1;
+            int outerRowCounter = 0;
+
+            for (int row = 0; row < calcArray.length; row++) {
+                sum += calcArray[row][col];
+                Log.d(TAG, "Value in arr: " + String.valueOf(calcArray[row][col]));
+
+
+                if ( rowCounter % 3 == 0 ) {
+                    int average =  Math.round(sum/3);
+                    Log.d(TAG, "Average " + average);
+                    smoothedGestureData[outerRowCounter++][col] = average;
+                    sum = 0;
+                    Log.d(TAG, "SmoothArray" );
+                    printData(smoothedGestureData);
+                    row-=2;
+                }
+                rowCounter++;
+            }
+        }
+
+        printData(smoothedGestureData);
+
+        rawGestureData = smoothedGestureData;
+        try {
+            Thread.sleep(1000000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
