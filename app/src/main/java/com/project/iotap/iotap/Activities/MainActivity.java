@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 String msg = text.getText().toString().trim();
                 if (!msg.isEmpty()) {
                     try {
-                        pahoMqttClient.publishMessage(client, msg, 1, Constants.GREET_SUBSCRIBE_TOPIC);
+                        pahoMqttClient.publishMessage(client, msg, 1, Constants.GREETING_TOPIC);
                     } catch (MqttException e) {
                         e.printStackTrace();
                     } catch (UnsupportedEncodingException e) {

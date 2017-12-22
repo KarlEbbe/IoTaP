@@ -38,7 +38,7 @@ public class DataNormalizer {
     }
 
     private void normalizeData2(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
-        int[][] calcArray = new int[21][6];
+        int[][] calcArray = new int[25][6];
         int[][] smoothedGestureData = new int[20][6];
 
         for (int i = 0; i < rawGestureData.length; i++) {
@@ -47,8 +47,11 @@ public class DataNormalizer {
             }
         }
 
-        calcArray[20][0] = rawGestureData[19][4];
-        calcArray[20][1] = rawGestureData[19][5];
+        for (int i = 15; i < smoothedGestureData.length; i++) {
+            for (int j = 0; j < calcArray[i].length; j++) {
+                calcArray[i + 5][j] = smoothedGestureData[i][j];
+            }
+        }
 
         for (int col = 0; col < 6; col++) {
             int sum = 0;
@@ -60,14 +63,14 @@ public class DataNormalizer {
                 Log.d(TAG, "Value in arr: " + String.valueOf(calcArray[row][col]));
 
 
-                if ( rowCounter % 3 == 0 ) {
-                    int average =  Math.round(sum/3);
+                if ( rowCounter % 5 == 0 ) {
+                    int average =  Math.round(sum/5);
                     Log.d(TAG, "Average " + average);
                     smoothedGestureData[outerRowCounter++][col] = average;
                     sum = 0;
                     Log.d(TAG, "SmoothArray" );
                     printData(smoothedGestureData);
-                    row-=2;
+                    row-=3;
                 }
                 rowCounter++;
             }
