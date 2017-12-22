@@ -32,59 +32,66 @@ public class DataNormalizer {
         fillMissingData(rawGestureData);
         Log.d(TAG, "\n\nAfter filling in missing data\n\n");
         printData(rawGestureData);
-        normalizeData2(rawGestureData);
+        normalizeData(rawGestureData);
         Log.d(TAG, "\n\nAfter Normalizing data\n\n");
         printData(rawGestureData);
     }
 
-    private void normalizeData2(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
-        int[][] calcArray = new int[25][6];
+    /**
+     * Using moving window to smooth the data by averaging.
+     *
+     * @param rawGestureData
+     */
+    private void normalizeData(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
+        int[][] tmpArray = new int[24][6];
         int[][] smoothedGestureData = new int[20][6];
 
+        //Copies raw gesture data to tmpArray.
         for (int i = 0; i < rawGestureData.length; i++) {
             for (int j = 0; j < rawGestureData[i].length; j++) {
-                calcArray[i][j] = rawGestureData[i][j];
+                tmpArray[i][j] = rawGestureData[i][j];
             }
         }
 
+        //Adds 5 extra rows to the tmpArray.
         for (int i = 15; i < smoothedGestureData.length; i++) {
-            for (int j = 0; j < calcArray[i].length; j++) {
-                calcArray[i + 5][j] = smoothedGestureData[i][j];
-            }
+            tmpArray[i + 4] = rawGestureData[i];
         }
 
+        //For each column.
         for (int col = 0; col < 6; col++) {
             int sum = 0;
-            int rowCounter = 1;
-            int outerRowCounter = 0;
+            int modulusCounter = 1;
+            int smoothedRowCounter = 0;
 
-            for (int row = 0; row < calcArray.length; row++) {
-                sum += calcArray[row][col];
-                Log.d(TAG, "Value in arr: " + String.valueOf(calcArray[row][col]));
+            //For each row
+            for (int row = 0; row < tmpArray.length; row++) {
+                sum += tmpArray[row][col];
+                Log.d(TAG, "Value in arr: " + String.valueOf(tmpArray[row][col]));
 
-
-                if ( rowCounter % 5 == 0 ) {
-                    int average =  Math.round(sum/5);
+                //For every fifth row.
+                if (modulusCounter % 5 == 0) {
+                    int average = Math.round(sum / 5);
                     Log.d(TAG, "Average " + average);
-                    smoothedGestureData[outerRowCounter++][col] = average;
+                    smoothedRowCounter++;
+
+                    smoothedGestureData[smoothedRowCounter][col] = average;
                     sum = 0;
-                    Log.d(TAG, "SmoothArray" );
+                    Log.d(TAG, "SmoothArray");
                     printData(smoothedGestureData);
-                    row-=3;
+                    row -= 4; //Reset the row one step back.
                 }
-                rowCounter++;
+                modulusCounter++;
             }
         }
 
         printData(smoothedGestureData);
-
         rawGestureData = smoothedGestureData;
         try {
-            Thread.sleep(1000000);
+            Thread.sleep(10000000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -122,7 +129,7 @@ public class DataNormalizer {
      *
      * @param data the smoothed data
      */
-    private void normalizeData(int[][] data) {
+    private void normalizeDataOld(int[][] data) {
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[i].length; j++) {
                 data[i][j] = normalize(data[i][j]);
