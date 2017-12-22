@@ -59,7 +59,7 @@ public class BluetoothHandler {
 
                 insertMeasurementValuesIntoArray(subStrAppended);
 
-                appendedBTMessage = new StringBuilder(nbrRowsToRead);
+                appendedBTMessage.delete(0, appendedBTMessage.lastIndexOf("h"));
             }
 
             if (rowCounter == nbrRowsToRead) {
