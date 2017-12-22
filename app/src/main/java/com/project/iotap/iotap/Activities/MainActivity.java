@@ -48,11 +48,11 @@ public class MainActivity extends AppCompatActivity {
         text = (EditText) findViewById(R.id.textMessage);
         setupBtButton();
         setupMqtt();
-        wekaClassifier = new WekaClassifier(getApplicationContext());
-        dataNormalizer = new DataNormalizer();
+        //wekaClassifier = new WekaClassifier(getApplicationContext());
+        //dataNormalizer = new DataNormalizer();
 
 
-        test();
+        //test();
     }
 
     private void test() {
