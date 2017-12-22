@@ -45,9 +45,10 @@ public class BluetoothHandler {
         public void handleMessage(Message msg) {
 
             String readMessage = (String) msg.obj;
-            appendedBTMessage.append(readMessage);
+            Log.d(TAG, "readMessage: " + readMessage);
 
-            Log.d(TAG, "readMessage: " + readMessage + "appendedBTMessage: " + appendedBTMessage);
+            appendedBTMessage.append(readMessage);
+            Log.d(TAG, "appendedBTMessage: " + appendedBTMessage);
 
             if (!initiated) {
                 checkIfBeginningOfMessage();
@@ -77,14 +78,14 @@ public class BluetoothHandler {
                 for (int measurementData : row) {
                     currentRow.append(String.valueOf(measurementData)).append(",");
                 }
-                Log.d("gestureArray", currentRow + "\n");
+                Log.d(TAG, currentRow + "\n");
             }
             //Just some sleep for debugging purposes. To be deleted in final project.
-            try {
-                Thread.sleep(20000000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+           // try {
+           //     Thread.sleep(10000);
+           // } catch (InterruptedException e) {
+           //     e.printStackTrace();
+           // }
         }
 
         private void insertMeasurementValuesIntoArray(String formattedString) {
@@ -113,9 +114,10 @@ public class BluetoothHandler {
         }
 
         private void resetForNewReading() {
-            rawGestureData = new int[20][6];
+            intiateDefaultValueForArray();
             appendedBTMessage = new StringBuilder(20);
             rowCounter = 0;
+
         }
     };
 
@@ -187,6 +189,7 @@ public class BluetoothHandler {
                 }
                 return;
             }
+            intiateDefaultValueForArray();
             readAndWriteThread = new ReadAndWriteThread(mmSocket);
             readAndWriteThread.start();
         }
