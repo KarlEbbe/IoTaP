@@ -78,6 +78,12 @@ public class DataNormalizer {
                     Log.d(TAG, "SmoothArray");
                     printData(smoothedGestureData);
                     row -= 2; //Reset the row one step back.
+
+                    if(row == 13){
+                        Log.d(TAG, "PUT BREAKPOINT ON THIS LINE!");
+                    }
+
+                    Log.d(TAG, "ROW: " + String.valueOf(row));
                 }
                 modulusCounter++;
             }
