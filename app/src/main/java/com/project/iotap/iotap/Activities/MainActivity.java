@@ -56,8 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void test() {
         int[][] x = testRawGestureData();
-        //dataNormalizer.processData(x);
-        wekaClassifier.classifyTuple(x);
+        dataNormalizer.processData(x);
+        //wekaClassifier.classifyTuple(x);
     }
 
     /**
@@ -133,10 +133,11 @@ public class MainActivity extends AppCompatActivity {
         Random rand = new Random();
 
         int[][] rawGestureData = new int[20][6];
-        for (int i = 2; i < rawGestureData.length; i++) {
+        for (int i = 0; i < rawGestureData.length; i++) {
             for (int j = 0; j < rawGestureData[i].length; j++) {
-                int randomNbr = rand.nextInt(6000) - 2000;
-                rawGestureData[i][j] = randomNbr;
+                //int nbr = rand.nextInt(6000) - 2000;
+                int nbr = i + j + 1;
+                rawGestureData[i][j] = nbr;
             }
         }
 

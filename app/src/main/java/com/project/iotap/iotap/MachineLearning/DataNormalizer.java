@@ -7,13 +7,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * A class for smoothing (filling out missing) data, as well as normalizing it.
+ * A class for filling out missing values and smoothing the data.
  *
  * @author Christoffer Nilsson.
  */
 public class DataNormalizer {
 
     private static final String TAG = "DataNormalizer";
+    private static final int SMOOTH_N = 3;
     private int min = 0;
     private int max = 100;
 
@@ -21,7 +22,6 @@ public class DataNormalizer {
      * Fills in missing values using the overall average for that value,
      * e.g. if AccX7 is 0 then it will replace that value with the average for
      * all the other AccX.
-     * <p>
      * Then normalizes all values between 0-100.
      *
      * @param rawGestureData the raw sensor data
@@ -29,10 +29,10 @@ public class DataNormalizer {
     public void processData(int[][] rawGestureData) {
         Log.d(TAG, "\n\nBefore processing data\n\n");
         printData(rawGestureData);
-        fillMissingData(rawGestureData);
-        Log.d(TAG, "\n\nAfter filling in missing data\n\n");
-        printData(rawGestureData);
-        normalizeData(rawGestureData);
+       // fillMissingData(rawGestureData);
+       // Log.d(TAG, "\n\nAfter filling in missing data\n\n");
+       // printData(rawGestureData);
+        rawGestureData = normalizeData(rawGestureData);
         Log.d(TAG, "\n\nAfter Normalizing data\n\n");
         printData(rawGestureData);
     }
@@ -42,8 +42,8 @@ public class DataNormalizer {
      *
      * @param rawGestureData
      */
-    private void normalizeData(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
-        int[][] tmpArray = new int[24][6];
+    private int[][] normalizeData(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
+        int[][] tmpArray = new int[22][6];
         int[][] smoothedGestureData = new int[20][6];
 
         //Copies raw gesture data to tmpArray.
@@ -54,8 +54,8 @@ public class DataNormalizer {
         }
 
         //Adds 5 extra rows to the tmpArray.
-        for (int i = 15; i < smoothedGestureData.length; i++) {
-            tmpArray[i + 4] = rawGestureData[i];
+        for (int i = 18; i < smoothedGestureData.length; i++) {
+            tmpArray[i + 2] = rawGestureData[i];
         }
 
         //For each column.
@@ -70,28 +70,27 @@ public class DataNormalizer {
                 Log.d(TAG, "Value in arr: " + String.valueOf(tmpArray[row][col]));
 
                 //For every fifth row.
-                if (modulusCounter % 5 == 0) {
-                    int average = Math.round(sum / 5);
+                if (modulusCounter % SMOOTH_N == 0) {
+                    int average = Math.round(sum / SMOOTH_N);
                     Log.d(TAG, "Average " + average);
-                    smoothedRowCounter++;
-
-                    smoothedGestureData[smoothedRowCounter][col] = average;
+                    smoothedGestureData[smoothedRowCounter++][col] = average;
                     sum = 0;
                     Log.d(TAG, "SmoothArray");
                     printData(smoothedGestureData);
-                    row -= 4; //Reset the row one step back.
+                    row -= 2; //Reset the row one step back.
                 }
                 modulusCounter++;
             }
         }
 
         printData(smoothedGestureData);
-        rawGestureData = smoothedGestureData;
         try {
             Thread.sleep(10000000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        return smoothedGestureData;
     }
 
     /**
@@ -171,5 +170,7 @@ public class DataNormalizer {
             }
             Log.d(TAG, currentRow + "\n");
         }
+
+        Log.d(TAG, "Done printing array\n");
     }
 }
