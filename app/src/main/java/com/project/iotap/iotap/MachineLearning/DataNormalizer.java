@@ -42,45 +42,44 @@ public class DataNormalizer {
      *
      * @param rawGestureData
      */
-    private int[][] normalizeData(int[][] rawGestureData) { //Is 20X6. but needs to be 20x6 + 1x2
-        int[][] tmpArray = new int[22][6];
+    private int[][] normalizeData(int[][] rawGestureData) {
+        int[][] tmpArray = new int[22][6]; // Temporary array with two extra rows at the end to help with the smoothing.
         int[][] smoothedGestureData = new int[20][6];
 
         //Copies raw gesture data to tmpArray.
         for (int i = 0; i < rawGestureData.length; i++) {
-            for (int j = 0; j < rawGestureData[i].length; j++) {
-                tmpArray[i][j] = rawGestureData[i][j];
-            }
+            System.arraycopy(rawGestureData[i], 0, tmpArray[i], 0, rawGestureData[i].length);
         }
 
         //Adds 5 extra rows to the tmpArray.
-        for (int i = 18; i < smoothedGestureData.length; i++) {
-            tmpArray[i + 2] = rawGestureData[i];
-        }
+        System.arraycopy(rawGestureData, 18, tmpArray, 20, smoothedGestureData.length - 18);
 
-        //For each column.
+        //For each column...
         for (int col = 0; col < 6; col++) {
             int sum = 0;
             int modulusCounter = 1;
             int smoothedRowCounter = 0;
 
-            //For each row
+            //For each row...
             for (int row = 0; row < tmpArray.length; row++) {
                 sum += tmpArray[row][col];
-                Log.d(TAG, "Value in arr: " + String.valueOf(tmpArray[row][col]));
+                Log.d(TAG, "rawVal: " + String.valueOf(tmpArray[row][col]));
 
-                //For every fifth row.
+                //For every third row...
                 if (modulusCounter % SMOOTH_N == 0) {
                     int average = Math.round(sum / SMOOTH_N);
-                    Log.d(TAG, "Average " + average);
+                    Log.d(TAG, "Ave " + average);
                     smoothedGestureData[smoothedRowCounter++][col] = average;
                     sum = 0;
                     Log.d(TAG, "SmoothArray");
                     printData(smoothedGestureData);
-                    row -= 2; //Reset the row one step back.
+
+                    if(row<21){ //Fixes the trouble at the end
+                        row -= 2; //Reset the row one step back.
+                    }
 
                     if(row == 13){
-                        Log.d(TAG, "PUT BREAKPOINT ON THIS LINE!");
+                        Log.d(TAG, "PUT BREAKPOINT ON THIS LINE!!!");
                     }
 
                     Log.d(TAG, "ROW: " + String.valueOf(row));
@@ -88,14 +87,7 @@ public class DataNormalizer {
                 modulusCounter++;
             }
         }
-
         printData(smoothedGestureData);
-        try {
-            Thread.sleep(10000000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         return smoothedGestureData;
     }
 
