@@ -49,16 +49,14 @@ public class MainActivity extends AppCompatActivity {
         setupBtButton();
         setupMqtt();
         dataNormalizer = new DataNormalizer();
-        //wekaClassifier = new WekaClassifier(getApplicationContext());
+        wekaClassifier = new WekaClassifier(getApplicationContext());
 
-
-
-        //test();
+        test();
     }
 
     private void test() {
         int[][] x = testRawGestureData();
-        dataNormalizer.processData(x);
+        //dataNormalizer.processData(x);
         wekaClassifier.classifyTuple(x);
     }
 
