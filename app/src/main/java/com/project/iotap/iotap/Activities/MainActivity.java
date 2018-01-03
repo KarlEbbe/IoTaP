@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         text = (EditText) findViewById(R.id.textMessage);
+        getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBCGray));
 
         dataNormalizer = new DataNormalizer();
         wekaClassifier = new WekaClassifier(getApplicationContext());
