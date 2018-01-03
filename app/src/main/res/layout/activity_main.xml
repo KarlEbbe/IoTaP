@@ -7,55 +7,59 @@
     tools:context="com.project.iotap.iotap.Activities.MainActivity"
     tools:layout_editor_absoluteY="81dp">
 
-    <EditText
-        android:id="@+id/textMessage"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="210dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginTop="32dp"
-        android:ems="10"
-        android:hint="Enter message"
-        android:inputType="textPersonName"
-        android:paddingLeft="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnTest"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/send"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
-        android:id="@+id/send"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="78dp"
-        android:layout_marginEnd="13dp"
-        android:layout_marginTop="37dp"
-        android:text="Send Message"
-        app:layout_constraintBottom_toTopOf="@+id/Greet"
-        app:layout_constraintEnd_toStartOf="@+id/textMessage"
+        android:id="@+id/btnConnectSensor"
+        android:layout_width="170dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="196dp"
+        android:layout_marginTop="39dp"
+        android:text="Connect Motion Sensor"
+        app:layout_constraintBottom_toTopOf="@+id/send"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_chainStyle="spread_inside" />
 
     <Button
         android:id="@+id/Greet"
-        android:layout_width="200dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="43dp"
+        android:layout_width="170dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="338dp"
         android:text="Greet"
-        app:layout_constraintBottom_toTopOf="@+id/btnTest"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/send" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <EditText
+        android:id="@+id/textMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Enter message"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.526" />
 
     <Button
-        android:id="@+id/btnTest"
-        android:layout_width="200dp"
-        android:layout_height="70dp"
-        android:layout_marginBottom="29dp"
-        android:text="Connect Motion Sensor"
+        android:id="@+id/send"
+        android:layout_width="170dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="169dp"
+        android:text="Send"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textMessage" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor" />
+
 
 </android.support.constraint.ConstraintLayout>

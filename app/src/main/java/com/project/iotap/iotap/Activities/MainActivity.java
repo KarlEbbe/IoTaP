@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
      * Setups the bluetooth button with listeners.
      */
     private void setupBtButton() {
-        Button btnTest = (Button) findViewById(R.id.btnTest);
+        Button btnTest = (Button) findViewById(R.id.btnConnectSensor);
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
