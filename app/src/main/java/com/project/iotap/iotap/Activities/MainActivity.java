@@ -13,7 +13,7 @@ import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.MachineLearning.DataNormalizer;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
-import com.project.iotap.iotap.Shared.Constants;
+import com.project.iotap.iotap.Mqtt.MqttConstants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
 import com.project.iotap.iotap.Mqtt.PahoMqttClient;
 import com.project.iotap.iotap.R;
@@ -23,7 +23,6 @@ import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,15 +57,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setupMqtt() {
         this.pahoMqttClient = new PahoMqttClient();
-        this.client = pahoMqttClient.getMqttClient(getApplicationContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
+        this.client = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
 
         Button btnGreet = (Button) findViewById(R.id.Greet);
         btnGreet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("Is null?:" + pahoMqttClient.equals(null));
-                System.out.println("Is null?:" + client.equals(null));
-
                 pahoMqttClient.startListenForGreet(client);
             }
         });
@@ -78,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 String msg = text.getText().toString().trim();
                 if (!msg.isEmpty()) {
                     try {
-                        pahoMqttClient.publishMessage(client, msg, 1, Constants.GREETING_TOPIC);
+                        pahoMqttClient.publishMessage(client, msg, 1, MqttConstants.GREETING_TOPIC);
                     } catch (MqttException e) {
                         e.printStackTrace();
                     } catch (UnsupportedEncodingException e) {
@@ -125,20 +121,5 @@ public class MainActivity extends AppCompatActivity {
 
     private void publishGesture(Direction direction) {
         //TODO Code for publishing to mqtt.
-    }
-
-    private int[][] testRawGestureData() {
-        Random rand = new Random();
-
-        int[][] rawGestureData = new int[20][6];
-        for (int i = 0; i < rawGestureData.length; i++) {
-            for (int j = 0; j < rawGestureData[i].length; j++) {
-                //int nbr = rand.nextInt(6000) - 2000;
-                int nbr = i + j + 1;
-                rawGestureData[i][j] = nbr;
-            }
-        }
-
-        return rawGestureData;
     }
 }

@@ -17,14 +17,14 @@ import java.util.UUID;
 
 /**
  * Created by Anton on 2017-12-08.
- * Class that handles the connection and writing and reading data with motion sensor
+ * Class that handles the connection and writing and reading data with motion sensor over Bluetooth
  */
 
 public class BluetoothHandler {
 
     private static final String TAG = "Bluetooth";
     private static final int nbrRowsToRead = 20;
-    private int[][] rawGestureData = new int[nbrRowsToRead][6]; //20 rows, with 6 values on each row representing AccX, AccY, AccZ, GyX, GyY, GyZ values.
+    private final int[][] rawGestureData = new int[nbrRowsToRead][6]; //20 rows, with 6 values on each row representing AccX, AccY, AccZ, GyX, GyY, GyZ values.
 
     private BluetoothAdapter btAdapter = null;
     private ConnectThread connectThread = null;
@@ -39,27 +39,27 @@ public class BluetoothHandler {
     private final Handler btMessageHandler = new Handler() {
 
         private int rowCounter = 0;
-        private StringBuilder appendedBTMessage = new StringBuilder(nbrRowsToRead);
+        private StringBuilder wholeMessage = new StringBuilder(nbrRowsToRead);
         private Boolean initiated = false;
 
         public void handleMessage(Message msg) {
 
-            String readMessage = (String) msg.obj;
-            Log.d(TAG, "readMessage: " + readMessage);
+            String latestMessage = (String) msg.obj;
+            Log.d(TAG, "latestMessage: " + latestMessage);
 
-            appendedBTMessage.append(readMessage);
-            Log.d(TAG, "appendedBTMessage: " + appendedBTMessage);
+            wholeMessage.append(latestMessage);
+            Log.d(TAG, "wholeMessage: " + wholeMessage);
 
             if (!initiated) {
                 checkIfBeginningOfMessage();
             }
 
-            if (readMessage.contains("h") && appendedBTMessage.length() >= 13) {
-                String subStrAppended = appendedBTMessage.subSequence(0, appendedBTMessage.lastIndexOf("h")).toString();
+            if (latestMessage.contains("h") && wholeMessage.length() >= 13) {
+                String subWholeMessage = wholeMessage.subSequence(0, wholeMessage.lastIndexOf("h")).toString();
 
-                insertMeasurementValuesIntoArray(subStrAppended);
+                motionSensorValuesToArray(subWholeMessage);
 
-                appendedBTMessage.delete(0, appendedBTMessage.lastIndexOf("h"));
+                wholeMessage.delete(0, wholeMessage.lastIndexOf("h"));
             }
 
             if (rowCounter == nbrRowsToRead) {
@@ -80,55 +80,47 @@ public class BluetoothHandler {
                 }
                 Log.d(TAG, currentRow + "\n");
             }
-            //Just some sleep for debugging purposes. To be deleted in final project.
-           // try {
-           //     Thread.sleep(10000);
-           // } catch (InterruptedException e) {
-           //     e.printStackTrace();
-           // }
         }
 
-        private void insertMeasurementValuesIntoArray(String formattedString) {
-            String[] strArray = formattedString.split(",");
-
+        private void motionSensorValuesToArray(String subWholeMessage) {
+            String[] strArray = subWholeMessage.split(",");
             int[] measurementData = new int[6];
-
             int columnIndex = 0;
-            for (String aStrArray : strArray) {
+
+            for (String s : strArray) {
                 try {
-                    int x = Integer.parseInt(aStrArray);
-                    measurementData[columnIndex] = x; //TODO someimes throws out of bounds.
+                    int measurement = Integer.parseInt(s);
+                    measurementData[columnIndex] = measurement; // TODO sometimes throws out of bounds. It seems to happen when the motion sensor is moved to fast. Maybe we should just tell the user to do it slower?
                     columnIndex++;
                 } catch (NumberFormatException ignored) {
-                    //Do nothing, we only care about numbers.
+                    //Ignore exception, we only care about numbers.
                 }
             }
             rawGestureData[rowCounter++] = measurementData;
         }
 
         private void checkIfBeginningOfMessage() {
-            if (appendedBTMessage.toString().startsWith("window size = 20")) {
-                appendedBTMessage.delete(0, 16);
+            if (wholeMessage.toString().startsWith("window size = 20")) {
+                wholeMessage.delete(0, 16);
                 initiated = true;
             }
         }
 
         private void resetForNewReading() {
-            intiateDefaultValueForArray();
-            appendedBTMessage = new StringBuilder(20);
+            initiateDefaultValueForArray();
+            wholeMessage = new StringBuilder(20);
             rowCounter = 0;
-
         }
     };
 
     /**
-     * Constructor that enables bluetooth if off and starts the connect thread if the sensor is found.
+     * Constructor that enables bluetooth if it's off and starts the connect thread if the sensor is found.
      *
      * @param bluetoothCallback
      */
     public BluetoothHandler(BTCallback bluetoothCallback) {
         Log.d(TAG, "BTHandler started...");
-        intiateDefaultValueForArray();
+        initiateDefaultValueForArray();
         this.bluetoothCallback = bluetoothCallback;
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
@@ -152,7 +144,7 @@ public class BluetoothHandler {
         }
 
         if (btDevice == null) {
-            Log.d(TAG, "Device  wasn't paired."); //Maybe should notify the user of this error!
+            Log.d(TAG, "Device wasn't paired.");
         } else {
             connectThread = new ConnectThread(btDevice);
             connectThread.start();
@@ -189,7 +181,7 @@ public class BluetoothHandler {
                 }
                 return;
             }
-            intiateDefaultValueForArray();
+            initiateDefaultValueForArray();
             readAndWriteThread = new ReadAndWriteThread(mmSocket);
             readAndWriteThread.start();
         }
@@ -229,7 +221,7 @@ public class BluetoothHandler {
             Log.d(TAG, "Now connected and ready to read:");
             byte[] buffer = new byte[1024];
             int bytes;
-            write("w20".getBytes()); //Configures sensor to only send 20 samples.
+            write(("w"+ String.valueOf(nbrRowsToRead)).getBytes()); //Configures sensor to only send 20 samples.
 
             while (true) {
                 try {
@@ -274,8 +266,10 @@ public class BluetoothHandler {
         }
     }
 
-
-    private void intiateDefaultValueForArray() {
+    /**
+     * Initializes the rawGestureData with a default value of 50 000
+     */
+    private void initiateDefaultValueForArray() {
         for (int i = 0; i < rawGestureData.length; i++) {
             for (int j = 0; j < rawGestureData[i].length; j++) {
                 rawGestureData[i][j] = 50000;

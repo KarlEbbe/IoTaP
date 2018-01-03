@@ -1,9 +1,10 @@
-package com.project.iotap.iotap.Shared;
+package com.project.iotap.iotap.Mqtt;
 
-import java.util.Random;
-
-public class Constants {
-    private static Random rdm = new Random();
+/**
+ * MqttConstants used in the app shared by different classes.
+ */
+public class MqttConstants {
+    //MQTT
     public static final String MQTT_BROKER_URL = "tcp://m23.cloudmqtt.com:16532";
     public static final String CLIENT_ID = "android";
     public static final String CLIENT_USER = "enqeeoyx";

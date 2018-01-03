@@ -4,8 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.project.iotap.iotap.Shared.Constants;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -76,15 +74,15 @@ public class PahoMqttClient {
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setCleanSession(false);
         mqttConnectOptions.setAutomaticReconnect(true);
-        mqttConnectOptions.setUserName(Constants.CLIENT_USER);
-        mqttConnectOptions.setPassword(Constants.CLIENT_PASSWORD.toCharArray());
+        mqttConnectOptions.setUserName(MqttConstants.CLIENT_USER);
+        mqttConnectOptions.setPassword(MqttConstants.CLIENT_PASSWORD.toCharArray());
         return mqttConnectOptions;
     }
 
 
     public void publishMessage(@NonNull MqttAndroidClient client, @NonNull String msg, int qos, @NonNull String topic)
             throws MqttException, UnsupportedEncodingException {
-        byte[] encodedPayload = new byte[0];
+        byte[] encodedPayload;
         encodedPayload = msg.getBytes("UTF-8");
         MqttMessage message = new MqttMessage(encodedPayload);
         message.setId(320);
@@ -109,7 +107,7 @@ public class PahoMqttClient {
         });
     }
 
-    public void unsubscribe(@NonNull MqttAndroidClient client, @NonNull final String topic) throws MqttException {
+    private void unsubscribe(@NonNull MqttAndroidClient client, @NonNull final String topic) throws MqttException {
 
         IMqttToken token = client.unsubscribe(topic);
 
@@ -128,18 +126,18 @@ public class PahoMqttClient {
 
     public void startListenForGreet(MqttAndroidClient client) {
         try {
-            subscribe(client, Constants.GREETING_TOPIC, 1);
+            subscribe(client, MqttConstants.GREETING_TOPIC, 1);
         } catch (MqttException e) {
-            System.out.println("Could not subscribe to " + Constants.GREETING_TOPIC);
+            System.out.println("Could not subscribe to " + MqttConstants.GREETING_TOPIC);
             e.printStackTrace();
         }
     }
 
     public void stopListenForGreet(MqttAndroidClient client) {
         try {
-            unsubscribe(client, Constants.GREETING_TOPIC);
+            unsubscribe(client, MqttConstants.GREETING_TOPIC);
         } catch (MqttException e) {
-            System.out.println("Could not unsubscribe to " + Constants.GREETING_TOPIC);
+            System.out.println("Could not unsubscribe to " + MqttConstants.GREETING_TOPIC);
             e.printStackTrace();
         }
     }

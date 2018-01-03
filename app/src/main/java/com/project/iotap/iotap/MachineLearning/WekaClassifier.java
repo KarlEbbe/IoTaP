@@ -1,10 +1,6 @@
 package com.project.iotap.iotap.MachineLearning;
 
-/**
- * Created by Anton on 2017-11-29.
- * Example from https://www.dropbox.com/s/hgx1y9ciqzo6525/wekaClassifier.java?dl=0
- * for using Weka with java.
- */
+
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -21,6 +17,12 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
 
+/**
+ * Created by Anton on 2017-11-29.
+ * Example from https://www.dropbox.com/s/hgx1y9ciqzo6525/wekaClassifier.java?dl=0
+ * for using Weka with java.
+ */
+
 public class WekaClassifier {
 
     private static final String TAG = "Weka";
@@ -33,20 +35,19 @@ public class WekaClassifier {
 
     public WekaClassifier(Context appContext) {
         this.appContext = appContext;
-        setupClassifier();
+        Log.d(TAG, "Setting up classifier...");
+        loadPrecomputedClassifier();
+        setupAttributes();
     }
 
     /**
-     * Method that starts using Weka to classify the gesture data into a gesture.
-     * https://geekoverdose.wordpress.com/2016/11/27/weka-on-android-load-precomputed-model-and-predict-new-samples/
-     *
+     * Method that uses a precomputed classifier model to classify a dataset into a gesture.
      * @param rawGestureData smoothed gesture data.
      */
     public Direction classifyTuple(int[][] rawGestureData) {
-        Log.d(TAG, "Start classifying");
+        Log.d(TAG, "Start classifying...");
         // unpredicted data sets (reference to sample structure for new instances)
-        Instances dataUnpredicted = new Instances("Instances",
-                attributeList, 1);
+        Instances dataUnpredicted = new Instances("Instances", attributeList, 1);
         // last feature is target variable
         dataUnpredicted.setClassIndex(dataUnpredicted.numAttributes() - 1);
 
@@ -69,21 +70,17 @@ public class WekaClassifier {
             Log.d(TAG, "predicted: " + predictedClass);
 
         } catch (Exception e) {
-            Log.d(TAG, "Error when trying to classfy: " + e.getMessage());
+            Log.d(TAG, "Error when trying to classify: " + e.getMessage());
             e.printStackTrace();
         }
         return convertStringToEnum(predictedClass);
     }
 
 
-    private void setupClassifier() {
-        Log.d(TAG, "Setting up classifier...");
-        loadPrecomputedClassifier();
-        setupAttributes();
-    }
-
+    /**
+     * Creates a list of the different class labels and attributes that the classifier will use.
+     */
     private void setupAttributes() {
-        //Classes to predicts to. TODO Decide names
         classLabels = new ArrayList<String>() {
             {
                 add("left");
@@ -127,6 +124,9 @@ public class WekaClassifier {
         attributeList.add(attributeClass);
     }
 
+    /**
+     * Loads the classifier model from asset folder.
+     */
     private void loadPrecomputedClassifier() {
         AssetManager assetManager = appContext.getAssets();
         try {
@@ -140,6 +140,11 @@ public class WekaClassifier {
         }
     }
 
+    /**
+     * Converts the predicted label which is a string to the corresponding enum and returns it.
+     * @param predictedClass
+     * @return
+     */
     private Direction convertStringToEnum(String predictedClass) {
         switch (predictedClass) {
             case "up":

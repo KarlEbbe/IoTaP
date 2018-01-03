@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * A class for filling out missing values and smoothing the data.
  *
- * @author Christoffer Nilsson.
+ * @author Anton Gustafsson, Christoffer Nilsson.
  */
 public class DataNormalizer {
 
@@ -29,9 +29,9 @@ public class DataNormalizer {
     public void processData(int[][] rawGestureData) {
         Log.d(TAG, "\n\nBefore processing data\n\n");
         printData(rawGestureData);
-       // fillMissingData(rawGestureData);
-       // Log.d(TAG, "\n\nAfter filling in missing data\n\n");
-       // printData(rawGestureData);
+        fillMissingData(rawGestureData);
+        Log.d(TAG, "\n\nAfter filling in missing data\n\n");
+        printData(rawGestureData);
         rawGestureData = normalizeData(rawGestureData);
         Log.d(TAG, "\n\nAfter Normalizing data\n\n");
         printData(rawGestureData);
@@ -78,11 +78,7 @@ public class DataNormalizer {
                         row -= 2; //Reset the row one step back.
                     }
 
-                    if(row == 13){
-                        Log.d(TAG, "PUT BREAKPOINT ON THIS LINE!!!");
-                    }
-
-                    Log.d(TAG, "ROW: " + String.valueOf(row));
+                    Log.d(TAG, "row: " + String.valueOf(row));
                 }
                 modulusCounter++;
             }
@@ -144,7 +140,5 @@ public class DataNormalizer {
             }
             Log.d(TAG, currentRow + "\n");
         }
-
-        Log.d(TAG, "Done printing array\n");
     }
 }

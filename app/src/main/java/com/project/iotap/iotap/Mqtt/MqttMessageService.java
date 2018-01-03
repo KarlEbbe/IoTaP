@@ -8,8 +8,6 @@ import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.project.iotap.iotap.Shared.Constants;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -35,7 +33,7 @@ public class MqttMessageService extends Service {
         super.onCreate();
         Log.d(TAG, "onCreate");
         pahoMqttClient = new PahoMqttClient();
-        mqttAndroidClient = pahoMqttClient.getMqttClient(getApplicationContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
+        mqttAndroidClient = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
 
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
             @Override
