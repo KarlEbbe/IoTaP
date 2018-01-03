@@ -46,12 +46,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         text = (EditText) findViewById(R.id.textMessage);
-        setupBtButton();
-        setupMqtt();
+
         dataNormalizer = new DataNormalizer();
         wekaClassifier = new WekaClassifier(getApplicationContext());
 
-        test();
+        setupBtButton();
+        //setupMqtt();
+
+        //test();
     }
 
     private void test() {
@@ -112,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
                             Log.d(TAG, "Callback for gesture data fired!");
-                            Toast.makeText(getApplicationContext(), "GESTURE DETECTED!!!", Toast.LENGTH_LONG).show();
 
                             dataNormalizer.processData(rawGestureData);
-//                            wekaClassifier.classifyTuple(rawGestureData);
+                            wekaClassifier.classifyTuple(rawGestureData);
+                            Toast.makeText(getApplicationContext(), "Gesture CB in main fired", Toast.LENGTH_LONG).show();
 
                         }
                     });
