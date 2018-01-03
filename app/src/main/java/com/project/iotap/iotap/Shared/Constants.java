@@ -1,4 +1,4 @@
-package com.project.iotap.iotap.Mqtt;
+package com.project.iotap.iotap.Shared;
 
 import java.util.Random;
 

@@ -13,10 +13,11 @@ import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.MachineLearning.DataNormalizer;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
-import com.project.iotap.iotap.Mqtt.Constants;
+import com.project.iotap.iotap.Shared.Constants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
 import com.project.iotap.iotap.Mqtt.PahoMqttClient;
 import com.project.iotap.iotap.R;
+import com.project.iotap.iotap.Shared.Direction;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -28,9 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
 
-    private Button btnTest;
-    private Button btnGreet;
-    private Button btnSend;
     private EditText text;
 
     private BluetoothHandler bluetoothHandler;
@@ -52,14 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
         setupBtButton();
         //setupMqtt();
-
-        //test();
-    }
-
-    private void test() {
-        int[][] x = testRawGestureData();
-        dataNormalizer.processData(x);
-        //wekaClassifier.classifyTuple(x);
     }
 
     /**
@@ -69,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         this.pahoMqttClient = new PahoMqttClient();
         this.client = pahoMqttClient.getMqttClient(getApplicationContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
 
-        btnGreet = (Button) findViewById(R.id.Greet);
+        Button btnGreet = (Button) findViewById(R.id.Greet);
         btnGreet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -80,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnSend = (Button) findViewById(R.id.send);
+        Button btnSend = (Button) findViewById(R.id.send);
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -104,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
      * Setups the bluetooth button with listeners.
      */
     private void setupBtButton() {
-        btnTest = (Button) findViewById(R.id.btnTest);
+        Button btnTest = (Button) findViewById(R.id.btnTest);
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,12 +103,14 @@ public class MainActivity extends AppCompatActivity {
                     bluetoothHandler = new BluetoothHandler(new BTCallback() {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
-                            Log.d(TAG, "Callback for gesture data fired!");
 
                             dataNormalizer.processData(rawGestureData);
-                            wekaClassifier.classifyTuple(rawGestureData);
-                            Toast.makeText(getApplicationContext(), "Gesture CB in main fired", Toast.LENGTH_LONG).show();
+                            Direction direction = wekaClassifier.classifyTuple(rawGestureData);
 
+                            Log.d(TAG, "Gesture: " + String.valueOf(direction));
+                            Toast.makeText(getApplicationContext(), "Gesture: " + String.valueOf(direction), Toast.LENGTH_LONG).show();
+
+                            publishGesture(direction);
                         }
                     });
                 } else {
@@ -130,6 +122,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void publishGesture(Direction direction) {
+        //TODO Code for publishing to mqtt.
+    }
 
     private int[][] testRawGestureData() {
         Random rand = new Random();

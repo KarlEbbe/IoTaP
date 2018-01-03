@@ -8,21 +8,15 @@ package com.project.iotap.iotap.MachineLearning;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import com.project.iotap.iotap.Shared.Direction;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.J48;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
@@ -45,9 +39,10 @@ public class WekaClassifier {
     /**
      * Method that starts using Weka to classify the gesture data into a gesture.
      * https://geekoverdose.wordpress.com/2016/11/27/weka-on-android-load-precomputed-model-and-predict-new-samples/
+     *
      * @param rawGestureData smoothed gesture data.
      */
-    public void classifyTuple(int[][] rawGestureData){
+    public Direction classifyTuple(int[][] rawGestureData) {
         Log.d(TAG, "Start classifying");
         // unpredicted data sets (reference to sample structure for new instances)
         Instances dataUnpredicted = new Instances("Instances",
@@ -58,7 +53,7 @@ public class WekaClassifier {
         // create new instance which the classifier should classify.
         int counter = 0;
         DenseInstance newInstance = new DenseInstance(dataUnpredicted.numAttributes());
-        for(int row = 0; row < 20; row++) {
+        for (int row = 0; row < 20; row++) {
             for (int col = 0; col < 6; col++) {
                 newInstance.setValue(attributeList.get(counter++), rawGestureData[row][col]);
             }
@@ -67,16 +62,21 @@ public class WekaClassifier {
         // reference to dataset
         newInstance.setDataset(dataUnpredicted);
         // predict new sample
+        String predictedClass = "unknown";
         try {
             double result = classifier.classifyInstance(newInstance);
-            String className = classLabels.get(Double.valueOf(result).intValue());
-            Log.d(TAG, "predicted: " + className);
+            predictedClass = classLabels.get(Double.valueOf(result).intValue());
+            Log.d(TAG, "predicted: " + predictedClass);
+
         } catch (Exception e) {
-            Log.d(TAG, "Error when trying to classfier: " + e.getMessage());
+            Log.d(TAG, "Error when trying to classfy: " + e.getMessage());
+            e.printStackTrace();
         }
+        return convertStringToEnum(predictedClass);
     }
 
-    private void setupClassifier(){
+
+    private void setupClassifier() {
         Log.d(TAG, "Setting up classifier...");
         loadPrecomputedClassifier();
         setupAttributes();
@@ -84,7 +84,7 @@ public class WekaClassifier {
 
     private void setupAttributes() {
         //Classes to predicts to. TODO Decide names
-         classLabels = new ArrayList<String>() {
+        classLabels = new ArrayList<String>() {
             {
                 add("left");
                 add("right");
@@ -93,13 +93,13 @@ public class WekaClassifier {
             }
         };
 
-         attributeList = new ArrayList<>(120);
+        attributeList = new ArrayList<>(120);
 
         //Iterates 120 times adds all the attributes.
-        for(int row = 0; row<20; row++){
-            for (int col = 0; col<6; col++){
+        for (int row = 0; row < 20; row++) {
+            for (int col = 0; col < 6; col++) {
                 StringBuilder name = new StringBuilder(6);
-                switch (col){
+                switch (col) {
                     case 0:
                         name.append("AccX");
                         break;
@@ -137,6 +137,25 @@ public class WekaClassifier {
             e.printStackTrace();
         } catch (Exception e) {
             Log.d(TAG, "Exception when loading classifier: " + e.getMessage());
+        }
+    }
+
+    private Direction convertStringToEnum(String predictedClass) {
+        switch (predictedClass) {
+            case "up":
+                return Direction.UP;
+
+            case "right":
+                return Direction.RIGHT;
+
+            case "down":
+                return Direction.DOWN;
+
+            case "left":
+                return Direction.LEFT;
+
+            default:
+                return Direction.UNKNOWN;
         }
     }
 }

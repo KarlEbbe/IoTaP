@@ -97,7 +97,7 @@ public class BluetoothHandler {
             for (String aStrArray : strArray) {
                 try {
                     int x = Integer.parseInt(aStrArray);
-                    measurementData[columnIndex] = x;
+                    measurementData[columnIndex] = x; //TODO someimes throws out of bounds.
                     columnIndex++;
                 } catch (NumberFormatException ignored) {
                     //Do nothing, we only care about numbers.

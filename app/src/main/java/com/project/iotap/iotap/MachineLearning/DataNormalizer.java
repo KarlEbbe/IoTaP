@@ -122,19 +122,6 @@ public class DataNormalizer {
     }
 
     /**
-     * Normalizes data between 0-100.
-     *
-     * @param data the smoothed data
-     */
-    private void normalizeDataOld(int[][] data) {
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[i].length; j++) {
-                data[i][j] = normalize(data[i][j]);
-            }
-        }
-    }
-
-    /**
      * Checks to see if the current value is min or max.
      *
      * @param value the value to check
@@ -147,17 +134,6 @@ public class DataNormalizer {
             max = value;
         }
     }
-
-    /**
-     * Normalizes the value to between 0-100.
-     *
-     * @param value the value to normalize
-     * @return the normalized value
-     */
-    private int normalize(int value) {
-        return ((value - min) / (max - min)) * 100;
-    }
-
 
     //Print the gesture array.
     private void printData(int[][] rawGestureData) {

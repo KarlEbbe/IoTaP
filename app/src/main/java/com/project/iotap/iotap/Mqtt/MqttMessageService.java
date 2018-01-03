@@ -8,6 +8,8 @@ import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.project.iotap.iotap.Shared.Constants;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -23,6 +25,7 @@ public class MqttMessageService extends Service {
 
     public MqttMessageService() {
         WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        assert manager != null;
         WifiInfo info = manager.getConnectionInfo();
         macAddress = info.getMacAddress();
     }
