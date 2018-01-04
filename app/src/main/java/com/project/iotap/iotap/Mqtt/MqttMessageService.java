@@ -11,6 +11,7 @@ import android.util.Log;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MqttMessageService extends Service {
@@ -21,33 +22,39 @@ public class MqttMessageService extends Service {
     private String macAddress;
     private String commandTopic;
 
-    public MqttMessageService() {
-        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        assert manager != null;
-        WifiInfo info = manager.getConnectionInfo();
-        macAddress = info.getMacAddress();
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate");
+
+        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        assert manager != null;
+        WifiInfo info = manager.getConnectionInfo();
+        macAddress = info.getMacAddress();
+
         pahoMqttClient = new PahoMqttClient();
         mqttAndroidClient = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
 
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean b, String s) {
-
+                Log.d(TAG, "connectComplete.");
+                try {
+                    pahoMqttClient.subscribe(mqttAndroidClient, MqttConstants.GREETING_TOPIC, 1);
+                } catch (MqttException e) {
+                    Log.d(TAG, "Error when subscribing: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
 
             @Override
             public void connectionLost(Throwable throwable) {
-
+                Log.d(TAG, "connectionLost.");
             }
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
+                Log.d(TAG, "messageArrived.");
                 String message = mqttMessage.toString();
                 if (message.startsWith("ID:")) { // Send back mac address.
                     pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, 1, message.substring(3));
@@ -61,9 +68,10 @@ public class MqttMessageService extends Service {
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-
+                Log.d(TAG, "deliveryComplete.");
             }
         });
+
     }
 
     @Override

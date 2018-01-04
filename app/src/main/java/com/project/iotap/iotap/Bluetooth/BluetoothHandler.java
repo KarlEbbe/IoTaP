@@ -95,6 +95,10 @@ public class BluetoothHandler {
                 } catch (NumberFormatException ignored) {
                     //Ignore exception, we only care about numbers.
                 }
+                catch (IndexOutOfBoundsException exception){
+                    Log.d("XxXxXxXxXxXxXxXxXxXxX", "INDEX OUT OF BOUNDS; CONTINUING!jdsmbnfjdbahvgdvsghvfghvsdgfhvsvfghvsdhvgfgyjg");
+                    break;
+                }
             }
             rawGestureData[rowCounter++] = measurementData;
         }

@@ -20,7 +20,10 @@ import com.project.iotap.iotap.R;
 import com.project.iotap.iotap.Shared.Direction;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.UnsupportedEncodingException;
 
@@ -50,15 +53,23 @@ public class MainActivity extends AppCompatActivity {
 
         setupBtButton();
         //setupMqtt();
+        restartMqttService();
     }
 
     /**
-     * Setups MQTT
+     * Restarts the mqtt service.
+     */
+    private void restartMqttService(){
+        stopService(new Intent(MainActivity.this, MqttMessageService.class));
+        startService(new Intent(MainActivity.this, MqttMessageService.class));
+    }
+
+    /**
+     * Setups MQTT. Maybe remove this method.
      */
     private void setupMqtt() {
-        this.pahoMqttClient = new PahoMqttClient();
+        pahoMqttClient = new PahoMqttClient();
         this.client = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
-
         Button btnGreet = (Button) findViewById(R.id.Greet);
         btnGreet.setOnClickListener(new View.OnClickListener() {
             @Override
