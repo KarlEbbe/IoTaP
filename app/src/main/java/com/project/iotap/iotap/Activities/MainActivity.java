@@ -1,43 +1,32 @@
 package com.project.iotap.iotap.Activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.MachineLearning.DataNormalizer;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
-import com.project.iotap.iotap.Mqtt.MqttConstants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
-import com.project.iotap.iotap.Mqtt.PahoMqttClient;
 import com.project.iotap.iotap.R;
 import com.project.iotap.iotap.Shared.Direction;
-
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import java.io.UnsupportedEncodingException;
 
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
 
-    private EditText text;
+    private Button btnGreet;
 
     private BluetoothHandler bluetoothHandler;
-
-    private MqttAndroidClient client;
-    private PahoMqttClient pahoMqttClient;
-
     private WekaClassifier wekaClassifier;
     private DataNormalizer dataNormalizer;
 
@@ -45,63 +34,51 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        text = (EditText) findViewById(R.id.textMessage);
+        setupGreetButton();
         getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBCGray));
 
         dataNormalizer = new DataNormalizer();
         wekaClassifier = new WekaClassifier(getApplicationContext());
-
-        setupBtButton();
-        //setupMqtt();
+        setupIntent();
+        setupBluetooth();
         restartMqttService();
     }
 
     /**
+     * Makes this activity listen for intents.
+     */
+    private void setupIntent() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("greet"));
+    }
+
+    /**
+     * Setups the greet button
+     */
+    private void setupGreetButton() {
+        btnGreet = (Button) findViewById(R.id.btnGreet);
+        btnGreet.setEnabled(false);
+        btnGreet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendIntentToService();
+            }
+        });
+    }
+
+
+    /**
      * Restarts the mqtt service.
      */
-    private void restartMqttService(){
+    private void restartMqttService() {
         stopService(new Intent(MainActivity.this, MqttMessageService.class));
         startService(new Intent(MainActivity.this, MqttMessageService.class));
     }
 
     /**
-     * Setups MQTT. Maybe remove this method.
-     */
-    private void setupMqtt() {
-        pahoMqttClient = new PahoMqttClient();
-        this.client = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
-        Button btnGreet = (Button) findViewById(R.id.Greet);
-        btnGreet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pahoMqttClient.startListenForGreet(client);
-            }
-        });
-
-        Button btnSend = (Button) findViewById(R.id.send);
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String msg = text.getText().toString().trim();
-                if (!msg.isEmpty()) {
-                    try {
-                        pahoMqttClient.publishMessage(client, msg, 1, MqttConstants.GREETING_TOPIC);
-                    } catch (MqttException e) {
-                        e.printStackTrace();
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        Intent intent = new Intent(MainActivity.this, MqttMessageService.class);
-        startService(intent);
-    }
-
-    /**
      * Setups the bluetooth button with listeners.
      */
-    private void setupBtButton() {
+    private void setupBluetooth() {
         Button btnTest = (Button) findViewById(R.id.btnConnectSensor);
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "Gesture: " + String.valueOf(direction));
                             Toast.makeText(getApplicationContext(), "Gesture: " + String.valueOf(direction), Toast.LENGTH_LONG).show();
 
-                            publishGesture(direction);
                         }
                     });
                 } else {
@@ -130,7 +106,26 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void publishGesture(Direction direction) {
-        //TODO Code for publishing to mqtt.
+
+    /**
+     * Receives intents
+     */
+    private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String intentName = intent.getAction();
+            Log.d(TAG, "Intent received: " + intentName);
+            if(intentName.equals("greet")){
+                btnGreet.setEnabled(true); //Enable the handshake button. Maybe we should have a timeout or something here?
+            }
+        }
+    };
+
+    /**
+     * Sends an intent to be received by the mqtt service to send a greet message.
+     */
+    private void sendIntentToService() {
+        Intent intent = new Intent("publishGreet");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }

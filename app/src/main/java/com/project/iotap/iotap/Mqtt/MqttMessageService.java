@@ -1,11 +1,14 @@
 package com.project.iotap.iotap.Mqtt;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -14,6 +17,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.io.UnsupportedEncodingException;
+
 public class MqttMessageService extends Service {
 
     private static final String TAG = "MqttMessageService";
@@ -21,6 +26,7 @@ public class MqttMessageService extends Service {
     private MqttAndroidClient mqttAndroidClient;
     private String macAddress;
     private String commandTopic;
+    private String identifyAddress;
 
     @Override
     public void onCreate() {
@@ -31,6 +37,10 @@ public class MqttMessageService extends Service {
         assert manager != null;
         WifiInfo info = manager.getConnectionInfo();
         macAddress = info.getMacAddress();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("publishGreet"));
+
 
         pahoMqttClient = new PahoMqttClient();
         mqttAndroidClient = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
@@ -54,13 +64,16 @@ public class MqttMessageService extends Service {
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-                Log.d(TAG, "messageArrived.");
+                Log.d(TAG, "messageArrived: " + s + ", " + mqttMessage.toString());
                 String message = mqttMessage.toString();
-                if (message.startsWith("ID:")) { // Send back mac address.
-                    pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, 1, message.substring(3));
+                if (message.startsWith("ID:")) {
+                    identifyAddress = message.substring(3); //Save the identifyAddress
+
+                    sendIntentToMain();
+                    //pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, MqttConstants.QOS, message.substring(3));// Send back mac address.
                 } else if (message.startsWith("CMD:")) { // Remember topic.
                     commandTopic = message.substring(4);
-                    pahoMqttClient.subscribe(mqttAndroidClient, commandTopic, 1);
+                    pahoMqttClient.subscribe(mqttAndroidClient, commandTopic, MqttConstants.QOS);
                 } else if (message.startsWith("END")) { // Disconnect.
                     pahoMqttClient.disconnect(mqttAndroidClient);
                 }
@@ -91,4 +104,29 @@ public class MqttMessageService extends Service {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
     }
+
+    private void sendIntentToMain() {
+        Intent intent = new Intent("greet");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    /**
+     * Receives intents
+     */
+    private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String intentName = intent.getAction();
+            Log.d(TAG, "Intent received: " + intentName);
+            if(intentName.equals("publishGreet")){
+                try {
+                    pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, MqttConstants.QOS, identifyAddress);// Send back mac address.
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
 }

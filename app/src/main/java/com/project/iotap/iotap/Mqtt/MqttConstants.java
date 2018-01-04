@@ -10,4 +10,5 @@ public class MqttConstants {
     public static final String CLIENT_USER = "enqeeoyx";
     public static final String CLIENT_PASSWORD = "uBY_2qW7Eesw";
     public static final String GREETING_TOPIC = "/Greeting/Prox";
+    public static final int QOS = 1;
 }
