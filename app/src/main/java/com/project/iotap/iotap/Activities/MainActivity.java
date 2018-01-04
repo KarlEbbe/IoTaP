@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.project.iotap.iotap.Bluetooth.BTCallback;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
 
     private Button btnGreet;
+    private TextView twProxId;
 
     private BluetoothHandler bluetoothHandler;
     private WekaClassifier wekaClassifier;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupGreetButton();
+        twProxId = (TextView) findViewById(R.id.twProxId);
         getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBCGray));
 
         dataNormalizer = new DataNormalizer();
@@ -79,12 +82,13 @@ public class MainActivity extends AppCompatActivity {
      * Setups the bluetooth button with listeners.
      */
     private void setupBluetooth() {
-        Button btnTest = (Button) findViewById(R.id.btnConnectSensor);
-        btnTest.setOnClickListener(new View.OnClickListener() {
+        final Button btnConnectSensor = (Button) findViewById(R.id.btnConnectSensor);
+        btnConnectSensor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (bluetoothHandler == null) {
                     Toast.makeText(getApplicationContext(), "Try connecting...", Toast.LENGTH_LONG).show();
+                    btnConnectSensor.setText("Disconnect Motion Sensor");
                     bluetoothHandler = new BluetoothHandler(new BTCallback() {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
@@ -96,9 +100,10 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Gesture: " + String.valueOf(direction), Toast.LENGTH_LONG).show();
 
                         }
-                    });
+                    },getApplicationContext());
                 } else {
-                    Toast.makeText(getApplicationContext(), "Cancel connecting...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Disconnected BT.", Toast.LENGTH_LONG).show();
+                    btnConnectSensor.setText("Connect Motion Sensor");
                     bluetoothHandler.cancel();
                     bluetoothHandler = null;
                 }
@@ -117,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Intent received: " + intentName);
             if(intentName.equals("greet")){
                 btnGreet.setEnabled(true); //Enable the handshake button. Maybe we should have a timeout or something here?
+                twProxId.setText(intent.getStringExtra("id"));
             }
         }
     };

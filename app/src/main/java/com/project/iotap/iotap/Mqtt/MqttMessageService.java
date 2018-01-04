@@ -107,6 +107,7 @@ public class MqttMessageService extends Service {
 
     private void sendIntentToMain() {
         Intent intent = new Intent("greet");
+        intent.putExtra("id", identifyAddress);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 

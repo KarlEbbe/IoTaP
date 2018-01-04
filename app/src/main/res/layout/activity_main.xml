@@ -9,12 +9,12 @@
 
     <Button
         android:id="@+id/btnConnectSensor"
-        android:layout_width="170dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="209dp"
+        android:layout_width="190dp"
+        android:layout_height="85dp"
+        android:layout_marginBottom="271dp"
         android:layout_marginTop="39dp"
         android:text="Connect Motion Sensor"
-        app:layout_constraintBottom_toTopOf="@+id/btnGreet"
+        app:layout_constraintBottom_toTopOf="@+id/twProxId"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -24,14 +24,36 @@
 
     <Button
         android:id="@+id/btnGreet"
-        android:layout_width="170dp"
-        android:layout_height="wrap_content"
+        android:layout_width="190dp"
+        android:layout_height="85dp"
         android:layout_marginBottom="150dp"
         android:text="Handshake"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/twProxId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="102dp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.467"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor" />
+
+    <TextView
+        android:id="@+id/twProxIdlbl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:text="ProxID: "
+        app:layout_constraintBaseline_toBaselineOf="@+id/twProxId"
+        app:layout_constraintStart_toStartOf="@+id/btnGreet" />
 
 
 </android.support.constraint.ConstraintLayout>

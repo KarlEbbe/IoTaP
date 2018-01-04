@@ -5,9 +5,11 @@ import android.bluetooth.BluetoothAdapter;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +32,8 @@ public class BluetoothHandler {
     private ConnectThread connectThread = null;
     private ReadAndWriteThread readAndWriteThread = null;
 
+    private Context appContext;
+
     private final BTCallback bluetoothCallback;
 
     /**
@@ -41,6 +45,7 @@ public class BluetoothHandler {
         private int rowCounter = 0;
         private StringBuilder wholeMessage = new StringBuilder(nbrRowsToRead);
         private Boolean initiated = false;
+
 
         public void handleMessage(Message msg) {
 
@@ -122,13 +127,15 @@ public class BluetoothHandler {
      *
      * @param bluetoothCallback
      */
-    public BluetoothHandler(BTCallback bluetoothCallback) {
+    public BluetoothHandler(BTCallback bluetoothCallback, Context appContext) {
         Log.d(TAG, "BTHandler started...");
         initiateDefaultValueForArray();
+        this.appContext=appContext;
         this.bluetoothCallback = bluetoothCallback;
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
             Log.d(TAG, "Device does not support BT");
+            Toast.makeText(appContext, "Device does not support BT", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -149,6 +156,7 @@ public class BluetoothHandler {
 
         if (btDevice == null) {
             Log.d(TAG, "Device wasn't paired.");
+            Toast.makeText(appContext, "Device wasn't paired.", Toast.LENGTH_LONG).show();
         } else {
             connectThread = new ConnectThread(btDevice);
             connectThread.start();
@@ -176,6 +184,7 @@ public class BluetoothHandler {
             btAdapter.cancelDiscovery();
             try {
                 mmSocket.connect();
+                Toast.makeText(appContext, "Motion sensor connected", Toast.LENGTH_LONG).show();
             } catch (IOException connectException) {
                 Log.d(TAG, "Socket connection error: " + connectException.getMessage());
                 try {
