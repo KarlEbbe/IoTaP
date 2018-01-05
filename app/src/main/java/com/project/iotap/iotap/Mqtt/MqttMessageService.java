@@ -5,8 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -24,12 +23,12 @@ public class MqttMessageService extends Service {
     private static final String TAG = "MqttMessageService";
     private PahoMqttClient pahoMqttClient;
     private MqttAndroidClient mqttAndroidClient;
-    private String macAddress, identifyAddress, commandAddress;
+    private String deviceId, identifyAddress, commandAddress;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        setupMacAddress();
+        setDeviceId();
         setupIntentReceivers();
         setupMqtt();
     }
@@ -68,7 +67,7 @@ public class MqttMessageService extends Service {
                     sendIntentToMain("disconnect", "");
                     commandAddress = null;
                     pahoMqttClient.disconnect(mqttAndroidClient);
-                } else if (message.contains(macAddress)) {
+                } else if (message.contains(deviceId)) {
                     commandAddress = message;
                     sendIntentToMain("commandAddress", message);
                 }
@@ -91,14 +90,15 @@ public class MqttMessageService extends Service {
                 intentMessageReceiver, new IntentFilter("publishGesture"));
     }
 
+
     /**
-     * Retrieves and saves the macAdress of this device to act as id.
+     * Retrieves and sets a device name or later identification.
+     * @return
      */
-    private void setupMacAddress() {
-        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        assert manager != null;
-        WifiInfo info = manager.getConnectionInfo();
-        macAddress = info.getMacAddress();
+    public void setDeviceId() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        deviceId = (manufacturer + model);
     }
 
 
@@ -129,7 +129,7 @@ public class MqttMessageService extends Service {
             Log.d(TAG, "Intent received: " + intentName);
             assert intentName != null;
             if (intentName.equals("publishGreet")) {
-                publishMessage(macAddress, identifyAddress);
+                publishMessage(deviceId, identifyAddress);
             } else if (intentName.equals("publishGesture")) {
                 publishMessage(intent.getStringExtra("extra"), commandAddress);
             }
