@@ -27,6 +27,7 @@ public class MqttMessageService extends Service {
     private String macAddress;
     private String commandTopic;
     private String identifyAddress;
+    private String commandAddress;
 
     @Override
     public void onCreate() {
@@ -40,6 +41,10 @@ public class MqttMessageService extends Service {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("publishGreet"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("gesture"));
+
+
 
 
         pahoMqttClient = new PahoMqttClient();
@@ -69,13 +74,18 @@ public class MqttMessageService extends Service {
                 if (message.startsWith("ID:")) {
                     identifyAddress = message.substring(3); //Save the identifyAddress
 
-                    sendIntentToMain();
+                    sendIntentToMain("greet", identifyAddress);
                     //pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, MqttConstants.QOS, message.substring(3));// Send back mac address.
                 } else if (message.startsWith("CMD:")) { // Remember topic.
                     commandTopic = message.substring(4);
                     pahoMqttClient.subscribe(mqttAndroidClient, commandTopic, MqttConstants.QOS);
                 } else if (message.startsWith("END")) { // Disconnect.
+                    sendIntentToMain("disconnect", "NULL");
+                    commandAddress = null;
                     pahoMqttClient.disconnect(mqttAndroidClient);
+                }else if(message.contains(macAddress)){
+                    commandAddress = message; //Send this to Main Activity.
+                    sendIntentToMain("commandAddress",message);
                 }
             }
 
@@ -105,9 +115,9 @@ public class MqttMessageService extends Service {
         Log.d(TAG, "onDestroy");
     }
 
-    private void sendIntentToMain() {
-        Intent intent = new Intent("greet");
-        intent.putExtra("id", identifyAddress);
+    private void sendIntentToMain(String intentName, String extra) {
+        Intent intent = new Intent(intentName);
+        intent.putExtra("extra", extra);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -122,6 +132,14 @@ public class MqttMessageService extends Service {
             if(intentName.equals("publishGreet")){
                 try {
                     pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, MqttConstants.QOS, identifyAddress);// Send back mac address.
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }else if(intentName.equals("publishGesture")){
+                try {
+                    pahoMqttClient.publishMessage(mqttAndroidClient, intent.getStringExtra("extra"), MqttConstants.QOS, commandAddress);// Send gesture to arduino.
                 } catch (MqttException e) {
                     e.printStackTrace();
                 } catch (UnsupportedEncodingException e) {

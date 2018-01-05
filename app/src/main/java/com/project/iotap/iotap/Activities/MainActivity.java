@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private WekaClassifier wekaClassifier;
     private DataNormalizer dataNormalizer;
 
+    private String commandAddress = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +55,11 @@ public class MainActivity extends AppCompatActivity {
     private void setupIntent() {
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("greet"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("commandAddress"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mMessageReceiver, new IntentFilter("disconnect"));
+
     }
 
     /**
@@ -64,12 +71,11 @@ public class MainActivity extends AppCompatActivity {
         btnGreet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendIntentToService();
+                sendIntentToService("publishGreet", "");
             }
         });
     }
-
-
+    
     /**
      * Restarts the mqtt service.
      */
@@ -99,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "Gesture: " + String.valueOf(direction));
                             Toast.makeText(getApplicationContext(), "Gesture: " + String.valueOf(direction), Toast.LENGTH_LONG).show();
 
+                            publishGestureToArdunio(direction);
                         }
                     },getApplicationContext());
                 } else {
@@ -111,6 +118,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void publishGestureToArdunio(Direction direction) {
+        if(commandAddress != null){
+            sendIntentToService("publishGesture", direction.name().toLowerCase());
+        }else{
+            Log.d(TAG, "No commandAddress");
+            Toast.makeText(getApplicationContext(), "Couldn't publish gesture to arduino!", Toast.LENGTH_LONG).show();
+        }
+    }
 
     /**
      * Receives intents
@@ -122,16 +137,21 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Intent received: " + intentName);
             if(intentName.equals("greet")){
                 btnGreet.setEnabled(true); //Enable the handshake button. Maybe we should have a timeout or something here?
-                twProxId.setText(intent.getStringExtra("id"));
+                twProxId.setText(intent.getStringExtra("extra"));
+            }else if(intentName.equals("commandAddress")){
+                commandAddress = intent.getStringExtra("extra");
+            }else if(intentName.equals("disconnect")){
+                commandAddress = null;
             }
         }
     };
 
     /**
-     * Sends an intent to be received by the mqtt service to send a greet message.
+     * Sends an intent to mqttService with a name and some string data.
      */
-    private void sendIntentToService() {
-        Intent intent = new Intent("publishGreet");
+    private void sendIntentToService(String intentName, String extra) {
+        Intent intent = new Intent(intentName);
+        intent.putExtra("extra", extra);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }
