@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
         dataNormalizer = new DataNormalizer();
         wekaClassifier = new WekaClassifier(getApplicationContext());
-        setupIntent();
+        setupIntentReceivers();
         setupBluetooth();
         restartMqttService();
     }
@@ -52,14 +52,13 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Makes this activity listen for intents.
      */
-    private void setupIntent() {
+    private void setupIntentReceivers() {
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("greet"));
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("commandAddress"));
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mMessageReceiver, new IntentFilter("disconnect"));
-
     }
 
     /**
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     /**
      * Restarts the mqtt service.
      */
@@ -107,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
                             publishGestureToArdunio(direction);
                         }
-                    },getApplicationContext());
+                    });
                 } else {
                     Toast.makeText(getApplicationContext(), "Disconnected BT.", Toast.LENGTH_LONG).show();
                     btnConnectSensor.setText("Connect Motion Sensor");
@@ -119,9 +118,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void publishGestureToArdunio(Direction direction) {
-        if(commandAddress != null){
+        if (commandAddress != null) {
             sendIntentToService("publishGesture", direction.name().toLowerCase());
-        }else{
+        } else {
             Log.d(TAG, "No commandAddress");
             Toast.makeText(getApplicationContext(), "Couldn't publish gesture to arduino!", Toast.LENGTH_LONG).show();
         }
@@ -134,14 +133,19 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String intentName = intent.getAction();
+            assert intentName != null;
             Log.d(TAG, "Intent received: " + intentName);
-            if(intentName.equals("greet")){
-                btnGreet.setEnabled(true); //Enable the handshake button. Maybe we should have a timeout or something here?
-                twProxId.setText(intent.getStringExtra("extra"));
-            }else if(intentName.equals("commandAddress")){
-                commandAddress = intent.getStringExtra("extra");
-            }else if(intentName.equals("disconnect")){
-                commandAddress = null;
+            switch (intentName) {
+                case "greet":
+                    btnGreet.setEnabled(true); //Enable the handshake button. Maybe we should have a timeout or something here?
+                    twProxId.setText(intent.getStringExtra("extra"));
+                    break;
+                case "commandAddress":
+                    commandAddress = intent.getStringExtra("extra");
+                    break;
+                case "disconnect":
+                    commandAddress = null;
+                    break;
             }
         }
     };

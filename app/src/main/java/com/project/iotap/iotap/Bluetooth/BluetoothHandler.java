@@ -127,10 +127,9 @@ public class BluetoothHandler {
      *
      * @param bluetoothCallback
      */
-    public BluetoothHandler(BTCallback bluetoothCallback, Context appContext) {
+    public BluetoothHandler(BTCallback bluetoothCallback) {
         Log.d(TAG, "BTHandler started...");
         initiateDefaultValueForArray();
-        this.appContext=appContext;
         this.bluetoothCallback = bluetoothCallback;
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
@@ -184,7 +183,6 @@ public class BluetoothHandler {
             btAdapter.cancelDiscovery();
             try {
                 mmSocket.connect();
-                Toast.makeText(appContext, "Motion sensor connected", Toast.LENGTH_LONG).show();
             } catch (IOException connectException) {
                 Log.d(TAG, "Socket connection error: " + connectException.getMessage());
                 try {

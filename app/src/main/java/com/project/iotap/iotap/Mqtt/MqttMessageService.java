@@ -24,32 +24,22 @@ public class MqttMessageService extends Service {
     private static final String TAG = "MqttMessageService";
     private PahoMqttClient pahoMqttClient;
     private MqttAndroidClient mqttAndroidClient;
-    private String macAddress;
-    private String commandTopic;
-    private String identifyAddress;
-    private String commandAddress;
+    private String macAddress, identifyAddress, commandAddress;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate");
+        setupMacAddress();
+        setupIntentReceivers();
+        setupMqtt();
+    }
 
-        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        assert manager != null;
-        WifiInfo info = manager.getConnectionInfo();
-        macAddress = info.getMacAddress();
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("publishGreet"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("gesture"));
-
-
-
-
+    /**
+     * Creates and sets callback for mqttClient.
+     */
+    private void setupMqtt() {
         pahoMqttClient = new PahoMqttClient();
         mqttAndroidClient = pahoMqttClient.getMqttClient(getApplicationContext(), MqttConstants.MQTT_BROKER_URL, MqttConstants.CLIENT_ID);
-
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean b, String s) {
@@ -72,20 +62,15 @@ public class MqttMessageService extends Service {
                 Log.d(TAG, "messageArrived: " + s + ", " + mqttMessage.toString());
                 String message = mqttMessage.toString();
                 if (message.startsWith("ID:")) {
-                    identifyAddress = message.substring(3); //Save the identifyAddress
-
+                    identifyAddress = message.substring(3);
                     sendIntentToMain("greet", identifyAddress);
-                    //pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, MqttConstants.QOS, message.substring(3));// Send back mac address.
-                } else if (message.startsWith("CMD:")) { // Remember topic.
-                    commandTopic = message.substring(4);
-                    pahoMqttClient.subscribe(mqttAndroidClient, commandTopic, MqttConstants.QOS);
-                } else if (message.startsWith("END")) { // Disconnect.
-                    sendIntentToMain("disconnect", "NULL");
+                } else if (message.startsWith("DISCONNECT:")) {
+                    sendIntentToMain("disconnect", "");
                     commandAddress = null;
                     pahoMqttClient.disconnect(mqttAndroidClient);
-                }else if(message.contains(macAddress)){
-                    commandAddress = message; //Send this to Main Activity.
-                    sendIntentToMain("commandAddress",message);
+                } else if (message.contains(macAddress)) {
+                    commandAddress = message;
+                    sendIntentToMain("commandAddress", message);
                 }
             }
 
@@ -94,27 +79,40 @@ public class MqttMessageService extends Service {
                 Log.d(TAG, "deliveryComplete.");
             }
         });
-
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand");
-        return START_STICKY;
+    /**
+     * Registers receivers for intens.
+     */
+    private void setupIntentReceivers() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                intentMessageReceiver, new IntentFilter("publishGreet"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                intentMessageReceiver, new IntentFilter("publishGesture"));
     }
 
-    @Override
+    /**
+     * Retrieves and saves the macAdress of this device to act as id.
+     */
+    private void setupMacAddress() {
+        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        assert manager != null;
+        WifiInfo info = manager.getConnectionInfo();
+        macAddress = info.getMacAddress();
+    }
+
+
+    @Override //TODO not used but needs to be implemented.
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy");
-    }
-
+    /**
+     * Sends an intent with a name and some extra string data.
+     *
+     * @param intentName
+     * @param extra
+     */
     private void sendIntentToMain(String intentName, String extra) {
         Intent intent = new Intent(intentName);
         intent.putExtra("extra", extra);
@@ -124,28 +122,33 @@ public class MqttMessageService extends Service {
     /**
      * Receives intents
      */
-    private final BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver intentMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String intentName = intent.getAction();
             Log.d(TAG, "Intent received: " + intentName);
-            if(intentName.equals("publishGreet")){
-                try {
-                    pahoMqttClient.publishMessage(mqttAndroidClient, macAddress, MqttConstants.QOS, identifyAddress);// Send back mac address.
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }else if(intentName.equals("publishGesture")){
-                try {
-                    pahoMqttClient.publishMessage(mqttAndroidClient, intent.getStringExtra("extra"), MqttConstants.QOS, commandAddress);// Send gesture to arduino.
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+            assert intentName != null;
+            if (intentName.equals("publishGreet")) {
+                publishMessage(macAddress, identifyAddress);
+            } else if (intentName.equals("publishGesture")) {
+                publishMessage(intent.getStringExtra("extra"), commandAddress);
             }
         }
     };
+
+    /**
+     * Publishes a message to a topic.
+     *
+     * @param message
+     * @param topic
+     */
+    private void publishMessage(String message, String topic) {
+        try {
+            pahoMqttClient.publishMessage(mqttAndroidClient, message, MqttConstants.QOS, topic);
+        } catch (MqttException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
 }
