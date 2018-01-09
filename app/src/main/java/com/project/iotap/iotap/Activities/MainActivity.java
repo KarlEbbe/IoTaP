@@ -20,6 +20,7 @@ import com.project.iotap.iotap.MachineLearning.WekaClassifier;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
 import com.project.iotap.iotap.R;
 import com.project.iotap.iotap.Shared.Direction;
+import com.project.iotap.iotap.Shared.ExcellToArray;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -87,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
      * Setups the bluetooth button with listeners.
      */
     private void setupBluetooth() {
+        final ExcellToArray lol =  new ExcellToArray();
         final Button btnConnectSensor = (Button) findViewById(R.id.btnConnectSensor);
         btnConnectSensor.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
 
+                            rawGestureData = lol.getArray(1);
                             dataNormalizer.processData(rawGestureData);
                             Direction direction = wekaClassifier.classifyTuple(rawGestureData);
 
