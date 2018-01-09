@@ -32,9 +32,10 @@ public class DataNormalizer {
         fillMissingData(rawGestureData);
         Log.d(TAG, "\n\nAfter filling in missing data\n\n");
         printData(rawGestureData);
-        rawGestureData = normalizeData(rawGestureData);
+        rawGestureData = smoothData(rawGestureData);
         Log.d(TAG, "\n\nAfter Normalizing data\n\n");
         printData(rawGestureData);
+        normalizeData(rawGestureData);
     }
 
     /**
@@ -42,7 +43,7 @@ public class DataNormalizer {
      *
      * @param rawGestureData
      */
-    private int[][] normalizeData(int[][] rawGestureData) {
+    private int[][] smoothData(int[][] rawGestureData) {
         int[][] tmpArray = new int[22][6]; // Temporary array with two extra rows at the end to help with the smoothing.
         int[][] smoothedGestureData = new int[20][6];
 
@@ -74,7 +75,7 @@ public class DataNormalizer {
                     Log.d(TAG, "SmoothArray");
                     printData(smoothedGestureData);
 
-                    if(row<21){ //Fixes the trouble at the end
+                    if (row < 21) { //Fixes the trouble at the end
                         row -= 2; //Reset the row one step back.
                     }
 
@@ -140,5 +141,28 @@ public class DataNormalizer {
             }
             Log.d(TAG, currentRow + "\n");
         }
+    }
+
+    /**
+     * Normalizes data between 0-100.
+     *
+     * @param data the smoothed data
+     */
+    private void normalizeData(int[][] data) {
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                data[i][j] = normalize(data[i][j]);
+            }
+        }
+    }
+
+    /**
+     * Normalizes the value to between 0-100.
+     *
+     * @param value the value to normalize
+     * @return the normalized value
+     */
+    private int normalize(int value) {
+        return ((value - min) / (max - min)) * 100;
     }
 }
