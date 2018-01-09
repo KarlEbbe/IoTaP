@@ -9,7 +9,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,8 +31,6 @@ public class BluetoothHandler {
     private ConnectThread connectThread = null;
     private ReadAndWriteThread readAndWriteThread = null;
 
-    private Context appContext;
-
     private final BTCallback bluetoothCallback;
 
     /**
@@ -42,38 +39,71 @@ public class BluetoothHandler {
     @SuppressLint("HandlerLeak")
     private final Handler btMessageHandler = new Handler() {
 
-        private int rowCounter = 0;
-        private StringBuilder wholeMessage = new StringBuilder(nbrRowsToRead);
-        private Boolean initiated = false;
-
+        private StringBuilder wholeMessage = new StringBuilder(125);
+        long startTime = System.currentTimeMillis();
+        private int hCounter = 0;
 
         public void handleMessage(Message msg) {
 
             String latestMessage = (String) msg.obj;
-            Log.d(TAG, "latestMessage: " + latestMessage);
+
+            if (latestMessage.contains("h")) {
+                hCounter++;
+            }
 
             wholeMessage.append(latestMessage);
-            Log.d(TAG, "wholeMessage: " + wholeMessage);
 
-            if (!initiated) {
-                checkIfBeginningOfMessage();
+            if (timeout()) {
+                Log.d(TAG, "time has run out!");
+                if (hCounter >= 15) {
+                    Log.d(TAG, "h limit reached or surpassed; " + hCounter);
+                    Log.d(TAG, "wholeMessage: " + wholeMessage);
+                    motionSensorValuesToArray(wholeMessage.toString());
+                    printDebugToBeRemoved();
+                    bluetoothCallback.rawGestureDataCB(rawGestureData);
+                    resetForNewReading();
+                } else {
+                    Log.d(TAG, "not enough h; " + hCounter);
+                }
+                hCounter = 0;
+                wholeMessage = new StringBuilder(125);
             }
+        }
 
-            if (latestMessage.contains("h") && wholeMessage.length() >= 13) {
-                String subWholeMessage = wholeMessage.subSequence(0, wholeMessage.lastIndexOf("h")).toString();
-
-                motionSensorValuesToArray(subWholeMessage);
-
-                wholeMessage.delete(0, wholeMessage.lastIndexOf("h"));
+        private boolean timeout() {
+            long estimatedTime = System.currentTimeMillis() - startTime;
+            if (estimatedTime >= 1000) {
+                startTime = System.currentTimeMillis();
+                return true;
             }
+            return false;
+        }
 
-            if (rowCounter == nbrRowsToRead) {
-                printDebugToBeRemoved();
+        private void motionSensorValuesToArray(String wholeMessage) {
+            String[] splitWholeMessage = wholeMessage.split(",");
+            int rowIndex = 0;
+            int columnIndex = 0;
+            for (String s : splitWholeMessage) {
+                try {
+                    int measurement = Integer.parseInt(s);
+                    rawGestureData[rowIndex][columnIndex++] = measurement;
+                    if (columnIndex == 6) {
+                        columnIndex = 0;
+                        rowIndex++;
 
-                bluetoothCallback.rawGestureDataCB(rawGestureData);
-
-                resetForNewReading();
+                        if (rowIndex == 20) {
+                            return;
+                        }
+                    }
+                } catch (NumberFormatException ignored) {
+                    //Ignore exception, we only care about numbers.
+                }
             }
+        }
+
+        private void resetForNewReading() {
+            initiateDefaultValueForArray();
+            wholeMessage = new StringBuilder(20);
         }
 
         //TODO: REMOVE!
@@ -85,40 +115,6 @@ public class BluetoothHandler {
                 }
                 Log.d(TAG, currentRow + "\n");
             }
-        }
-
-        private void motionSensorValuesToArray(String subWholeMessage) {
-            String[] strArray = subWholeMessage.split(",");
-            int[] measurementData = new int[6];
-            int columnIndex = 0;
-
-            for (String s : strArray) {
-                try {
-                    int measurement = Integer.parseInt(s);
-                    measurementData[columnIndex] = measurement; // TODO sometimes throws out of bounds. It seems to happen when the motion sensor is moved to fast. Maybe we should just tell the user to do it slower?
-                    columnIndex++;
-                } catch (NumberFormatException ignored) {
-                    //Ignore exception, we only care about numbers.
-                }
-                catch (IndexOutOfBoundsException exception){
-                    Log.d("XxXxXxXxXxXxXxXxXxXxX", "INDEX OUT OF BOUNDS; CONTINUING!jdsmbnfjdbahvgdvsghvfghvsdgfhvsvfghvsdhvgfgyjg");
-                    break;
-                }
-            }
-            rawGestureData[rowCounter++] = measurementData;
-        }
-
-        private void checkIfBeginningOfMessage() {
-            if (wholeMessage.toString().startsWith("window size = 20")) {
-                wholeMessage.delete(0, 16);
-                initiated = true;
-            }
-        }
-
-        private void resetForNewReading() {
-            initiateDefaultValueForArray();
-            wholeMessage = new StringBuilder(20);
-            rowCounter = 0;
         }
     };
 
@@ -134,7 +130,6 @@ public class BluetoothHandler {
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
             Log.d(TAG, "Device does not support BT");
-            Toast.makeText(appContext, "Device does not support BT", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -155,7 +150,6 @@ public class BluetoothHandler {
 
         if (btDevice == null) {
             Log.d(TAG, "Device wasn't paired.");
-            Toast.makeText(appContext, "Device wasn't paired.", Toast.LENGTH_LONG).show();
         } else {
             connectThread = new ConnectThread(btDevice);
             connectThread.start();
@@ -232,7 +226,7 @@ public class BluetoothHandler {
             Log.d(TAG, "Now connected and ready to read:");
             byte[] buffer = new byte[1024];
             int bytes;
-            write(("w"+ String.valueOf(nbrRowsToRead)).getBytes()); //Configures sensor to only send 20 samples.
+            write(("w" + String.valueOf(nbrRowsToRead)).getBytes()); //Configures sensor to only send 20 samples.
 
             while (true) {
                 try {
