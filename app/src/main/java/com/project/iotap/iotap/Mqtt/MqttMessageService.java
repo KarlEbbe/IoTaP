@@ -21,6 +21,8 @@ import java.io.UnsupportedEncodingException;
 public class MqttMessageService extends Service {
 
     private static final String TAG = "MqttMessageService";
+
+
     private PahoMqttClient pahoMqttClient;
     private MqttAndroidClient mqttAndroidClient;
     private String deviceId, identifyAddress, commandAddress;
@@ -44,7 +46,7 @@ public class MqttMessageService extends Service {
             public void connectComplete(boolean b, String s) {
                 Log.d(TAG, "connectComplete.");
                 try {
-                    pahoMqttClient.subscribe(mqttAndroidClient, MqttConstants.GREETING_TOPIC, 1);
+                    pahoMqttClient.subscribe(mqttAndroidClient, MqttConstants.GREETING_TOPIC, 1); //When we are connected to mqtt, we subscribe to greeting.
                 } catch (MqttException e) {
                     Log.d(TAG, "Error when subscribing: " + e.getMessage());
                     e.printStackTrace();
@@ -58,18 +60,24 @@ public class MqttMessageService extends Service {
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-                Log.d(TAG, "messageArrived: " + s + ", " + mqttMessage.toString());
                 String message = mqttMessage.toString();
-                if (message.startsWith("ID:")) {
+                Log.d(TAG, "package arrived from mqtt: " + s + " : " + message);
+
+                if (message.startsWith(MqttConstants.GREETING)) {
                     identifyAddress = message.substring(3);
-                    sendIntentToMain("greet", identifyAddress);
-                } else if (message.startsWith("DISCONNECT:")) {
-                    sendIntentToMain("disconnect", "");
+                    sendIntentToMain(MqttConstants.GREETING, identifyAddress);
+                } else if (message.startsWith(MqttConstants.COMMAND)) {
+                    commandAddress = message.substring(3);
+                    if (deviceId.equals(commandAddress)) {//------------------< Step 6 in protocol.  Not sure if this is correct!
+                        sendIntentToMain(MqttConstants.COMMAND, message);
+                    } else {
+                        Log.d(TAG, "deviceId didn't match!");
+                    }
+
+                } else if (message.startsWith(MqttConstants.DISCONNECT)) {
+                    sendIntentToMain(MqttConstants.DISCONNECT, "");
                     commandAddress = null;
                     pahoMqttClient.disconnect(mqttAndroidClient);
-                } else if (message.contains(deviceId)) {
-                    commandAddress = message;
-                    sendIntentToMain("commandAddress", message);
                 }
             }
 
@@ -85,24 +93,24 @@ public class MqttMessageService extends Service {
      */
     private void setupIntentReceivers() {
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                intentMessageReceiver, new IntentFilter("publishGreet"));
+                intentMessageReceiver, new IntentFilter(MqttConstants.GREETING));
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                intentMessageReceiver, new IntentFilter("publishGesture"));
+                intentMessageReceiver, new IntentFilter(MqttConstants.COMMAND));
     }
-
 
     /**
      * Retrieves and sets a device name or later identification.
+     *
      * @return
      */
-    public void setDeviceId() {
+    private void setDeviceId() {
         String manufacturer = Build.MANUFACTURER;
         String model = Build.MODEL;
         deviceId = (manufacturer + model);
     }
 
 
-    @Override //TODO not used but needs to be implemented.
+    @Override
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -128,9 +136,9 @@ public class MqttMessageService extends Service {
             String intentName = intent.getAction();
             Log.d(TAG, "Intent received: " + intentName);
             assert intentName != null;
-            if (intentName.equals("publishGreet")) {
-                publishMessage(deviceId, identifyAddress);
-            } else if (intentName.equals("publishGesture")) {
+            if (intentName.equals(MqttConstants.GREETING)) {
+                publishMessage("1:" + deviceId, identifyAddress);
+            } else if (intentName.equals(MqttConstants.COMMAND)) {
                 publishMessage(intent.getStringExtra("extra"), commandAddress);
             }
         }

@@ -9,6 +9,12 @@ public class MqttConstants {
     public static final String CLIENT_ID = "android";
     public static final String CLIENT_USER = "enqeeoyx";
     public static final String CLIENT_PASSWORD = "uBY_2qW7Eesw";
-    public static final String GREETING_TOPIC = "/Greeting/Prox";
+    public static final String GREETING_TOPIC = "/greeting";
     public static final int QOS = 1;
+
+    public static final String GREETING = "1:";
+    public static final String COMMAND = "2:";
+    public static final String DISCONNECT = "3:";
+
+
 }
