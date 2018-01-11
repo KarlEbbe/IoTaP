@@ -10,50 +10,84 @@
     <Button
         android:id="@+id/btnConnectSensor"
         android:layout_width="190dp"
-        android:layout_height="85dp"
-        android:layout_marginBottom="271dp"
-        android:layout_marginTop="39dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="64dp"
         android:text="Connect Motion Sensor"
-        app:layout_constraintBottom_toTopOf="@+id/twProxId"
+        android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="spread_inside" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btnGreet"
         android:layout_width="190dp"
-        android:layout_height="85dp"
-        android:layout_marginBottom="150dp"
+        android:layout_height="81dp"
+        android:layout_marginBottom="88dp"
+        android:layout_marginTop="86dp"
         android:text="Handshake"
+        android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/twGesturelbl" />
 
-    <TextView
-        android:id="@+id/twProxId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="102dp"
-        android:text=""
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.467"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor" />
 
     <TextView
         android:id="@+id/twProxIdlbl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:text="ProxID: "
+        android:layout_marginEnd="12dp"
+        android:text="ProxID:"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
         app:layout_constraintBaseline_toBaselineOf="@+id/twProxId"
-        app:layout_constraintStart_toStartOf="@+id/btnGreet" />
+        app:layout_constraintEnd_toStartOf="@+id/twProxId"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/twProxId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:text=""
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/twProxIdlbl"
+        app:layout_constraintTop_toBottomOf="@+id/btnGreet" />
+
+
+    <TextView
+        android:id="@+id/twGesturelbl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:text="Gesture:"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/twGesture"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.482" />
+
+    <TextView
+        android:id="@+id/twGesture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="26dp"
+        android:layout_marginStart="12dp"
+        android:text=""
+        android:textColor="@android:color/white"
+        android:textSize="35sp"
+        android:textStyle="bold"
+        app:layout_constraintBaseline_toBaselineOf="@+id/twGesturelbl"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/twGesturelbl" />
 
 
 </android.support.constraint.ConstraintLayout>

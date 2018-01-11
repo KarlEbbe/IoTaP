@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
 
     private Button btnGreet;
-    private TextView twProxId;
+    private TextView twProxId, twGesture;
 
     private BluetoothHandler bluetoothHandler;
     private WekaClassifier wekaClassifier;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setupGreetButton();
         twProxId = (TextView) findViewById(R.id.twProxId);
+        twGesture = (TextView) findViewById(R.id.twGesture);
         getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBCGray));
 
         dataPreProcesser = new DataPreProcesser();
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
      * Setups the bluetooth button with listeners.
      */
     private void setupBluetooth() {
-        final TestHardcodedGesture testHardcodedGesture = new TestHardcodedGesture();
+        final TestHardcodedGesture testHardcodedGesture = new TestHardcodedGesture();//--------------------------------------------------TO BE REMOVED
         final Button btnConnectSensor = (Button) findViewById(R.id.btnConnectSensor);
         btnConnectSensor.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,10 +105,8 @@ public class MainActivity extends AppCompatActivity {
                             //rawGestureData = testHardcodedGesture.getArray(1); //----------------------------------------------------------DEBUG! To be removed
                             dataPreProcesser.processData(rawGestureData);
                             Direction direction = wekaClassifier.classifyTuple(rawGestureData);
-
-                            Log.d(TAG, "Gesture: " + String.valueOf(direction));
-                            Toast.makeText(getApplicationContext(), "Gesture: " + String.valueOf(direction), Toast.LENGTH_LONG).show();
-
+                            vibrate();
+                            twGesture.setText(String.valueOf(direction));
                             publishGestureToArdunio(direction);
                         }
                     });
@@ -127,6 +127,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "No commandAddress");
             Toast.makeText(getApplicationContext(), "Couldn't publish gesture to sensor!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void vibrate() {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(350);
     }
 
     /**
