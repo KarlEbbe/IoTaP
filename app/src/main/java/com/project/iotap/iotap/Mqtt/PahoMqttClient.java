@@ -83,7 +83,7 @@ public class PahoMqttClient {
     public void publishMessage(@NonNull MqttAndroidClient client, @NonNull String msg, int qos, @NonNull String topic)
             throws MqttException, UnsupportedEncodingException {
         byte[] encodedPayload;
-        encodedPayload = msg.getBytes("UTF-8");
+        encodedPayload = msg.getBytes("ASCII");
         MqttMessage message = new MqttMessage(encodedPayload);
         message.setId(320);
         message.setRetained(true);
