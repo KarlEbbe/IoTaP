@@ -2,10 +2,8 @@ package com.project.iotap.iotap.Bluetooth;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;

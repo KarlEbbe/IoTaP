@@ -14,7 +14,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.UnsupportedEncodingException;
 
-public class PahoMqttClient {
+class PahoMqttClient {
 
     private static final String TAG = "PahoMqttClient";
     private MqttAndroidClient mqttAndroidClient;
@@ -124,7 +124,7 @@ public class PahoMqttClient {
         });
     }
 
-    public void startListenForGreet(MqttAndroidClient client) {
+    private void startListenForGreet(MqttAndroidClient client) {
         try {
             subscribe(client, MqttConstants.GREETING_TOPIC, 1);
         } catch (MqttException e) {

@@ -19,8 +19,8 @@ public class DataPreProcesser {
     private final int oldAccMax = 422;
     private final int oldGyrMin = -6523;
     private final int oldGyrMax = 6272;
-    private int min = 0;
-    private int max = 200;
+    private final int min = 0;
+    private final int max = 200;
 
     /**
      * Fills in missing values using the overall average for that value,
@@ -31,19 +31,19 @@ public class DataPreProcesser {
      * @param rawGestureData the raw sensor data
      */
     public void processData(int[][] rawGestureData) {
-        Log.d(TAG, "\n\ndata before processed: " );
+        Log.d(TAG, "\n\ndata before processed: ");
         printData(rawGestureData);
 
         fillMissingData(rawGestureData);
-        Log.d(TAG, "\n\ndata filled.: " );
+        Log.d(TAG, "\n\ndata filled.: ");
         printData(rawGestureData);
 
         rawGestureData = smoothData(rawGestureData);
-        Log.d(TAG, "\n\ndata smoothed: " );
+        Log.d(TAG, "\n\ndata smoothed: ");
         printData(rawGestureData);
 
         normalizeData(rawGestureData);
-        Log.d(TAG, "\n\ndata normalized: " );
+        Log.d(TAG, "\n\ndata normalized: ");
         printData(rawGestureData);
     }
 

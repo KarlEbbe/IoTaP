@@ -4,9 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +21,7 @@ import com.project.iotap.iotap.Mqtt.MqttConstants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
 import com.project.iotap.iotap.R;
 import com.project.iotap.iotap.Shared.Direction;
-import com.project.iotap.iotap.Shared.ExcellToArray;
+import com.project.iotap.iotap.Shared.TestHardcodedGesture;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
      * Setups the bluetooth button with listeners.
      */
     private void setupBluetooth() {
-        final ExcellToArray lol =  new ExcellToArray();
+        final TestHardcodedGesture testHardcodedGesture = new TestHardcodedGesture();
         final Button btnConnectSensor = (Button) findViewById(R.id.btnConnectSensor);
         btnConnectSensor.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,8 +100,7 @@ public class MainActivity extends AppCompatActivity {
                     bluetoothHandler = new BluetoothHandler(new BTCallback() {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
-
-                            rawGestureData = lol.getArray(1); //----------------------------------------------------------DEBUG! To be removed
+                            //rawGestureData = testHardcodedGesture.getArray(1); //----------------------------------------------------------DEBUG! To be removed
                             dataPreProcesser.processData(rawGestureData);
                             Direction direction = wekaClassifier.classifyTuple(rawGestureData);
 
