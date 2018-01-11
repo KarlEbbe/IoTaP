@@ -66,52 +66,6 @@ public class DataPreProcesser {
             }
         }
         return smoothedGestureData;
-
-        // ^ This code works. All the code below can be removed safely I think.
-        // --------------------------------------------------------------------------------------------------------------------------------------------------------------------TODO DONT FORGET----------------------------------------------------------------------------------------------------------------------
-
-//        int[][] tmpArray = new int[20][6]; // Temporary array with two extra rows at the end to help with the smoothing.
-//        int[][] smoothedGestureData = new int[20][6];
-//
-//        //Copies raw gesture data to tmpArray.
-//        for (int i = 0; i < rawGestureData.length; i++) {
-//            System.arraycopy(rawGestureData[i], 0, tmpArray[i], 0, rawGestureData[i].length);
-//        }
-//
-//        //Adds 5 extra rows to the tmpArray.
-//        System.arraycopy(rawGestureData, 18, tmpArray, 20, smoothedGestureData.length - 18);
-//
-//        //For each column...
-//        for (int col = 0; col < 6; col++) {
-//            int sum = 0;
-//            int modulusCounter = 1;
-//            int smoothedRowCounter = 0;
-//
-//            //For each row...
-//            for (int row = 0; row < tmpArray.length; row++) {
-//                sum += tmpArray[row][col];
-//                Log.d(TAG, "rawVal: " + String.valueOf(tmpArray[row][col]));
-//
-//                //For every third row...
-//                if (modulusCounter % SMOOTH_N == 0) {
-//                    int average = Math.round(sum / SMOOTH_N);
-//                    Log.d(TAG, "Ave " + average);
-//                    smoothedGestureData[smoothedRowCounter++][col] = average;
-//                    sum = 0;
-//                    Log.d(TAG, "SmoothArray");
-//                    printData(smoothedGestureData);
-//
-//                    if (row < 21) { //Fixes the trouble at the end
-//                        row -= 2; //Reset the row one step back.
-//                    }
-//
-//                    Log.d(TAG, "row: " + String.valueOf(row));
-//                }
-//                modulusCounter++;
-//            }
-//        }
-//        printData(smoothedGestureData);
-//        return smoothedGestureData;
     }
 
     /**
@@ -150,11 +104,11 @@ public class DataPreProcesser {
     private void normalizeData(int[][] data) {
         // First normalize first three values, i.e. AccX, AccY and AccZ, then take gyro.
         for (int row = 0; row < data.length; row++) {
-            for (int col = 0; col < data[0].length; col += 3) {
+            for (int col = 0; col < data[0].length; col++) {
                 if (col < 3) {
-                    data[row][col] = normalize(data[row][col], oldAccMin, oldAccMax);
+                    data[row][col] = (int) normalize(data[row][col], oldAccMin, oldAccMax);
                 } else {
-                    data[row][col] = normalize(data[row][col], oldGyrMin, oldGyrMax);
+                    data[row][col] = (int) normalize(data[row][col], oldGyrMin, oldGyrMax);
                 }
             }
         }
@@ -166,8 +120,8 @@ public class DataPreProcesser {
      * @param value the value to normalize
      * @return the normalized value
      */
-    private int normalize(int value, int oldMin, int oldMax) {
-        return ((value - oldMin) / (oldMax - oldMin)) * (max - min) + min;
+    private double normalize(int value, int oldMin, int oldMax) {
+        return ((double) (value - oldMin) / (oldMax - oldMin)) * (max - min) + min;
     }
 
     //Print the gesture array.
