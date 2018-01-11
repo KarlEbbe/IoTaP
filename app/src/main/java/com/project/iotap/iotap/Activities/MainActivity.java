@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
 
-                            rawGestureData = lol.getArray(2); //----------------------------------------------------------DEBUG! To be removed
+                            rawGestureData = lol.getArray(1); //----------------------------------------------------------DEBUG! To be removed
                             dataPreProcesser.processData(rawGestureData);
                             Direction direction = wekaClassifier.classifyTuple(rawGestureData);
 
