@@ -17,6 +17,7 @@ import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
 import com.project.iotap.iotap.MachineLearning.DataNormalizer;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
+import com.project.iotap.iotap.Mqtt.MqttConstants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
 import com.project.iotap.iotap.R;
 import com.project.iotap.iotap.Shared.Direction;
@@ -55,11 +56,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setupIntentReceivers() {
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("greet"));
+                mMessageReceiver, new IntentFilter(MqttConstants.GREETING));
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("commandAddress"));
+                mMessageReceiver, new IntentFilter(MqttConstants.COMMAND));
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                mMessageReceiver, new IntentFilter("disconnect"));
+                mMessageReceiver, new IntentFilter(MqttConstants.DISCONNECT));
     }
 
     /**
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         btnGreet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendIntentToService("publishGreet", "");
+                sendIntentToService(MqttConstants.GREETING, "");
             }
         });
     }
@@ -122,10 +123,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void publishGestureToArdunio(Direction direction) {
         if (commandAddress != null) {
-            sendIntentToService("publishGesture", direction.name().toLowerCase());
+            sendIntentToService(MqttConstants.COMMAND, direction.name().toLowerCase());
         } else {
             Log.d(TAG, "No commandAddress");
-            Toast.makeText(getApplicationContext(), "Couldn't publish gesture to arduino!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Couldn't publish gesture to sensor!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -139,14 +140,14 @@ public class MainActivity extends AppCompatActivity {
             assert intentName != null;
             Log.d(TAG, "Intent received: " + intentName);
             switch (intentName) {
-                case "greet":
+                case MqttConstants.GREETING:
                     btnGreet.setEnabled(true); //Enable the handshake button. Maybe we should have a timeout or something here?
                     twProxId.setText(intent.getStringExtra("extra"));
                     break;
-                case "commandAddress":
+                case MqttConstants.COMMAND:
                     commandAddress = intent.getStringExtra("extra");
                     break;
-                case "disconnect":
+                case MqttConstants.DISCONNECT:
                     commandAddress = null;
                     break;
             }
