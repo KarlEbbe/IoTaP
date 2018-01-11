@@ -15,7 +15,7 @@ import android.widget.Toast;
 
 import com.project.iotap.iotap.Bluetooth.BTCallback;
 import com.project.iotap.iotap.Bluetooth.BluetoothHandler;
-import com.project.iotap.iotap.MachineLearning.DataNormalizer;
+import com.project.iotap.iotap.MachineLearning.DataPreProcesser;
 import com.project.iotap.iotap.MachineLearning.WekaClassifier;
 import com.project.iotap.iotap.Mqtt.MqttConstants;
 import com.project.iotap.iotap.Mqtt.MqttMessageService;
@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothHandler bluetoothHandler;
     private WekaClassifier wekaClassifier;
-    private DataNormalizer dataNormalizer;
+    private DataPreProcesser dataPreProcesser;
 
     private String commandAddress = null;
 
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         twProxId = (TextView) findViewById(R.id.twProxId);
         getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorBCGray));
 
-        dataNormalizer = new DataNormalizer();
+        dataPreProcesser = new DataPreProcesser();
         wekaClassifier = new WekaClassifier(getApplicationContext());
         setupIntentReceivers();
         setupBluetooth();
@@ -101,8 +101,8 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
 
-                            rawGestureData = lol.getArray(1);
-                            dataNormalizer.processData(rawGestureData);
+                            rawGestureData = lol.getArray(2); //----------------------------------------------------------DEBUG! To be removed
+                            dataPreProcesser.processData(rawGestureData);
                             Direction direction = wekaClassifier.classifyTuple(rawGestureData);
 
                             Log.d(TAG, "Gesture: " + String.valueOf(direction));

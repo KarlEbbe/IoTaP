@@ -11,9 +11,9 @@ import java.util.List;
  *
  * @author Anton Gustafsson, Christoffer Nilsson.
  */
-public class DataNormalizer {
+public class DataPreProcesser {
 
-    private static final String TAG = "DataNormalizer";
+    private static final String TAG = "DataPreProcesser";
     private static final int SMOOTH_N = 3;
     private final int oldAccMin = -445;
     private final int oldAccMax = 422;
@@ -31,9 +31,20 @@ public class DataNormalizer {
      * @param rawGestureData the raw sensor data
      */
     public void processData(int[][] rawGestureData) {
+        Log.d(TAG, "\n\ndata before processed: " );
+        printData(rawGestureData);
+
         fillMissingData(rawGestureData);
+        Log.d(TAG, "\n\ndata filled.: " );
+        printData(rawGestureData);
+
         rawGestureData = smoothData(rawGestureData);
+        Log.d(TAG, "\n\ndata smoothed: " );
+        printData(rawGestureData);
+
         normalizeData(rawGestureData);
+        Log.d(TAG, "\n\ndata normalized: " );
+        printData(rawGestureData);
     }
 
     /**
