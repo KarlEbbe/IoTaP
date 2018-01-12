@@ -8,13 +8,11 @@ import java.util.List;
 
 /**
  * A class for filling out missing values and smoothing the data.
- *
  * @author Anton Gustafsson, Christoffer Nilsson.
  */
-public class DataPreProcesser {
+public class DataPreProcessor {
 
-    private static final String TAG = "DataPreProcesser";
-    private static final int SMOOTH_N = 3;
+    private static final String TAG = "DataPreProcessor";
     private final int oldAccMin = -445;
     private final int oldAccMax = 422;
     private final int oldGyrMin = -6523;
@@ -31,20 +29,9 @@ public class DataPreProcesser {
      * @param rawGestureData the raw sensor data
      */
     public void processData(int[][] rawGestureData) {
-        Log.d(TAG, "\n\ndata before processed: ");
-        printData(rawGestureData);
-
         fillMissingData(rawGestureData);
-        Log.d(TAG, "\n\ndata filled.: ");
-        printData(rawGestureData);
-
         rawGestureData = smoothData(rawGestureData);
-        Log.d(TAG, "\n\ndata smoothed: ");
-        printData(rawGestureData);
-
         normalizeData(rawGestureData);
-        Log.d(TAG, "\n\ndata normalized: ");
-        printData(rawGestureData);
     }
 
     /**

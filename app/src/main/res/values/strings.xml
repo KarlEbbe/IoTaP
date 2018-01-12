@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">IoTaP</string>
+    <string name="app_name">Motion Sensor 9000</string>
+    <string name="btnHandshake">Handshake</string>
+    <string name="btnConnectSensor">Connect to motion sensor</string>
+    <string name="btnDisconnectSensor">Disconnect from motion sensor</string>
+    <string name="twGesturelbl">Gesture:</string>
+    <string name="twProxIdlbl">ID topic:</string>
 </resources>

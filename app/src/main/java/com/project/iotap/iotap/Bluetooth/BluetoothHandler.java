@@ -15,20 +15,17 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Created by Anton on 2017-12-08.
- * Class that handles the connection and writing and reading data with motion sensor over Bluetooth
+ * Class that handles the connection and writing and reading data with motion sensor over Bluetooth.
+ * @author Anton
  */
-
 public class BluetoothHandler {
 
-    private static final String TAG = "Bluetooth";
+    private static final String TAG = "BluetoothHandler";
     private static final int nbrRowsToRead = 20;
     private final int[][] rawGestureData = new int[nbrRowsToRead][6]; //20 rows, with 6 values on each row representing AccX, AccY, AccZ, GyX, GyY, GyZ values.
-
     private BluetoothAdapter btAdapter = null;
     private ConnectThread connectThread = null;
     private ReadAndWriteThread readAndWriteThread = null;
-
     private final BTCallback bluetoothCallback;
 
     /**
@@ -38,36 +35,34 @@ public class BluetoothHandler {
     private final Handler btMessageHandler = new Handler() {
 
         private StringBuilder wholeMessage = new StringBuilder(125);
-        long startTime = System.currentTimeMillis();
-        private int hCounter = 0;
+        private long startTime = System.currentTimeMillis();
+        private int hCounter;
 
         public void handleMessage(Message msg) {
-
             String latestMessage = (String) msg.obj;
-
             if (latestMessage.contains("h")) {
                 hCounter++;
             }
-
             wholeMessage.append(latestMessage);
-
             if (timeout()) {
-                Log.d(TAG, "time has run out!");
-                if (hCounter >= 15) {
-                    Log.d(TAG, "h limit reached or surpassed; " + hCounter);
-                    Log.d(TAG, "wholeMessage: " + wholeMessage);
+                Log.d(TAG, "Time is up!");
+                if (hCounter >= 15) { // We require 15 readings.
+                    Log.d(TAG, "h limit reached or surpassed: " + hCounter);
                     motionSensorValuesToArray(wholeMessage.toString());
-                    printDebugToBeRemoved();
                     bluetoothCallback.rawGestureDataCB(rawGestureData);
                     resetForNewReading();
                 } else {
-                    Log.d(TAG, "not enough h; " + hCounter);
+                    Log.e(TAG, "Not enough h: " + hCounter);
                 }
                 hCounter = 0;
-                wholeMessage = new StringBuilder(125);
+                wholeMessage = new StringBuilder(120);
             }
         }
 
+        /**
+         * Returns true if it has been more than one second since last move, false if not.
+         * @return true if the move took too long or false otherwise
+         */
         private boolean timeout() {
             long estimatedTime = System.currentTimeMillis() - startTime;
             if (estimatedTime >= 1000) {
@@ -77,6 +72,10 @@ public class BluetoothHandler {
             return false;
         }
 
+        /**
+         * Goes through the message received from bluetooth and converts it into a 2d array.
+         * @param wholeMessage
+         */
         private void motionSensorValuesToArray(String wholeMessage) {
             String[] splitWholeMessage = wholeMessage.split(",");
             int rowIndex = 0;
@@ -88,56 +87,41 @@ public class BluetoothHandler {
                     if (columnIndex == 6) {
                         columnIndex = 0;
                         rowIndex++;
-
                         if (rowIndex == 20) {
                             return;
                         }
                     }
                 } catch (NumberFormatException ignored) {
-                    //Ignore exception, we only care about numbers.
+                    // Ignore exception, we only care about numbers.
                 }
             }
         }
 
+        /**
+         * Resets values to prepare for a new reading.
+         */
         private void resetForNewReading() {
             initiateDefaultValueForArray();
-            wholeMessage = new StringBuilder(20);
-        }
-
-        //TODO: REMOVE!
-        private void printDebugToBeRemoved() {
-            for (int[] row : rawGestureData) {
-                StringBuilder currentRow = new StringBuilder();
-                for (int measurementData : row) {
-                    currentRow.append(String.valueOf(measurementData)).append(",");
-                }
-                Log.d(TAG, currentRow + "\n");
-            }
+            wholeMessage = new StringBuilder(120);
         }
     };
 
     /**
      * Constructor that enables bluetooth if it's off and starts the connect thread if the sensor is found.
-     *
      * @param bluetoothCallback
      */
     public BluetoothHandler(BTCallback bluetoothCallback) {
-        Log.d(TAG, "BTHandler started...");
         initiateDefaultValueForArray();
         this.bluetoothCallback = bluetoothCallback;
         btAdapter = BluetoothAdapter.getDefaultAdapter();
         if (btAdapter == null) {
-            Log.d(TAG, "Device does not support BT");
             return;
         }
-
         if (!btAdapter.isEnabled()) {
             btAdapter.enable();
         }
-
         BluetoothDevice btDevice = null;
         Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
-
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 if (device.getName().equals("G6")) {
@@ -145,19 +129,15 @@ public class BluetoothHandler {
                 }
             }
         }
-
-        if (btDevice == null) {
-            Log.d(TAG, "Device wasn't paired.");
-        } else {
-            connectThread = new ConnectThread(btDevice);
-            connectThread.start();
-        }
+        connectThread = new ConnectThread(btDevice);
+        connectThread.start();
     }
 
     /**
      * Thread that handles socket creation and connection with the sensor.
      */
     private class ConnectThread extends Thread {
+
         private final BluetoothSocket mmSocket;
         private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
@@ -166,7 +146,7 @@ public class BluetoothHandler {
             try {
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) {
-                Log.d(TAG, "Socket error: " + e.getMessage());
+                Log.e(TAG, "Socket error: " + Log.getStackTraceString(e));
             }
             mmSocket = tmp;
         }
@@ -175,12 +155,12 @@ public class BluetoothHandler {
             btAdapter.cancelDiscovery();
             try {
                 mmSocket.connect();
-            } catch (IOException connectException) {
-                Log.d(TAG, "Socket connection error: " + connectException.getMessage());
+            } catch (IOException e) {
+                Log.e(TAG, "Socket connection error: " + Log.getStackTraceString(e));
                 try {
                     mmSocket.close();
-                } catch (IOException closeException) {
-                    Log.d(TAG, "Error when closing the socket: " + closeException.getMessage());
+                } catch (IOException e1) {
+                    Log.e(TAG, "Error when closing the socket: " + Log.getStackTraceString(e1));
                 }
                 return;
             }
@@ -193,7 +173,7 @@ public class BluetoothHandler {
             try {
                 mmSocket.close();
             } catch (IOException closeException) {
-                Log.d(TAG, "Error when closing the socket: " + closeException.getMessage());
+                Log.e(TAG, "Error when closing the socket: " + closeException.getMessage());
             }
         }
     }
@@ -214,25 +194,23 @@ public class BluetoothHandler {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {
-                Log.d(TAG, "Error when opening streams" + e.getMessage());
+                Log.e(TAG, "Error when opening streams" + Log.getStackTraceString(e));
             }
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
         }
 
         public void run() {
-            Log.d(TAG, "Now connected and ready to read:");
             byte[] buffer = new byte[1024];
             int bytes;
             write(("w" + String.valueOf(nbrRowsToRead)).getBytes()); //Configures sensor to only send 20 samples.
-
             while (true) {
                 try {
                     bytes = mmInStream.read(buffer);
                     String readMessage = new String(buffer, 0, bytes);
                     btMessageHandler.obtainMessage(1, bytes, -1, readMessage).sendToTarget();
                 } catch (IOException e) {
-                    Log.d(TAG, "Error when reading from stream" + e.getMessage());
+                    Log.e(TAG, "Error when reading from stream: " + Log.getStackTraceString(e));
                     break;
                 }
             }
@@ -242,7 +220,7 @@ public class BluetoothHandler {
             try {
                 mmOutStream.write(bytes);
             } catch (IOException e) {
-                Log.d(TAG, "Error when writing to outputStream" + e.getMessage());
+                Log.e(TAG, "Error when writing to stream: " + Log.getStackTraceString(e));
             }
         }
 
@@ -250,13 +228,13 @@ public class BluetoothHandler {
             try {
                 mmSocket.close();
             } catch (IOException e) {
-                Log.d(TAG, "Error when closing socket" + e.getMessage());
+                Log.e(TAG, "Error when closing socket: " + Log.getStackTraceString(e));
             }
         }
     }
 
     /**
-     * Stops the threads and deletes them.
+     * Stops the threads.
      */
     public void cancel() {
         if (connectThread != null) {
@@ -270,7 +248,7 @@ public class BluetoothHandler {
     }
 
     /**
-     * Initializes the rawGestureData with a default value of 50 000
+     * Initializes the rawGestureData with a default value of 50000 (empty).
      */
     private void initiateDefaultValueForArray() {
         for (int i = 0; i < rawGestureData.length; i++) {

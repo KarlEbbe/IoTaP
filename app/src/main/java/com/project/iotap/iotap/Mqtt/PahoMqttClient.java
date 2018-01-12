@@ -25,38 +25,22 @@ class PahoMqttClient {
         try {
             IMqttToken token = mqttAndroidClient.connect(getMqttConnectionOption());
             token.setActionCallback(new IMqttActionListener() {
+
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     mqttAndroidClient.setBufferOpts(getDisconnectedBufferOptions());
-                    Log.d(TAG, "Success");
                     startListenForGreet(mqttAndroidClient);
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.d(TAG, "Failure " + exception.toString());
+                    Log.e(TAG, "Failed: " + exception.toString());
                 }
             });
         } catch (MqttException e) {
-            e.printStackTrace();
+            Log.e(TAG, Log.getStackTraceString(e));
         }
-
         return mqttAndroidClient;
-    }
-
-    public void disconnect(@NonNull MqttAndroidClient client) throws MqttException {
-        IMqttToken mqttToken = client.disconnect();
-        mqttToken.setActionCallback(new IMqttActionListener() {
-            @Override
-            public void onSuccess(IMqttToken iMqttToken) {
-                Log.d(TAG, "Successfully disconnected");
-            }
-
-            @Override
-            public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
-                Log.d(TAG, "Failed to disconnected " + throwable.toString());
-            }
-        });
     }
 
     @NonNull
@@ -79,7 +63,6 @@ class PahoMqttClient {
         return mqttConnectOptions;
     }
 
-
     public void publishMessage(@NonNull MqttAndroidClient client, @NonNull String msg, int qos, @NonNull String topic)
             throws MqttException, UnsupportedEncodingException {
         byte[] encodedPayload;
@@ -96,49 +79,25 @@ class PahoMqttClient {
         token.setActionCallback(new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken iMqttToken) {
-                Log.d(TAG, "Subscribe Successfully " + topic);
+                Log.d(TAG, "Subscribed successfully to " + topic);
             }
 
             @Override
             public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
-                Log.e(TAG, "Subscribe Failed " + topic);
-
+                Log.e(TAG, "Subscription to " + topic + " failed.");
             }
         });
     }
 
-    private void unsubscribe(@NonNull MqttAndroidClient client, @NonNull final String topic) throws MqttException {
-
-        IMqttToken token = client.unsubscribe(topic);
-
-        token.setActionCallback(new IMqttActionListener() {
-            @Override
-            public void onSuccess(IMqttToken iMqttToken) {
-                Log.d(TAG, "Unsubscribe Successfully " + topic);
-            }
-
-            @Override
-            public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
-                Log.e(TAG, "Unsubscribe Failed " + topic);
-            }
-        });
-    }
-
+    /**
+     * Subscribes to the greeting topic.
+     * @param client
+     */
     private void startListenForGreet(MqttAndroidClient client) {
         try {
             subscribe(client, MqttConstants.GREETING_TOPIC, 1);
         } catch (MqttException e) {
-            System.out.println("Could not subscribe to " + MqttConstants.GREETING_TOPIC);
-            e.printStackTrace();
-        }
-    }
-
-    public void stopListenForGreet(MqttAndroidClient client) {
-        try {
-            unsubscribe(client, MqttConstants.GREETING_TOPIC);
-        } catch (MqttException e) {
-            System.out.println("Could not unsubscribe to " + MqttConstants.GREETING_TOPIC);
-            e.printStackTrace();
+            Log.e(TAG, Log.getStackTraceString(e));
         }
     }
 }

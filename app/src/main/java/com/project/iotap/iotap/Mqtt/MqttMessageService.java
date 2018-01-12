@@ -24,7 +24,7 @@ public class MqttMessageService extends Service {
 
     private PahoMqttClient pahoMqttClient;
     private MqttAndroidClient mqttAndroidClient;
-    private String deviceId, identifyAddress, commandAddress;
+    private String deviceId, idTopic, commandTopic;
 
     @Override
     public void onCreate() {
@@ -43,46 +43,43 @@ public class MqttMessageService extends Service {
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean b, String s) {
-                Log.d(TAG, "connectComplete.");
                 try {
                     pahoMqttClient.subscribe(mqttAndroidClient, MqttConstants.GREETING_TOPIC, 1); //When we are connected to mqtt, we subscribe to greeting.
                 } catch (MqttException e) {
-                    Log.d(TAG, "Error when subscribing: " + e.getMessage());
-                    e.printStackTrace();
+                    Log.e(TAG, "Error when subscribing: " + Log.getStackTraceString(e));
                 }
             }
 
             @Override
             public void connectionLost(Throwable throwable) {
-                Log.d(TAG, "connectionLost.");
+                Log.d(TAG, "Connection to MQTT service lost.");
             }
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
                 String message = mqttMessage.toString();
-                Log.d(TAG, "package arrived from mqtt: " + s + " : " + message);
-
-                if (message.startsWith(MqttConstants.GREETING)) {
-                    identifyAddress = message.substring(2);
-                    sendIntentToMain(MqttConstants.GREETING, identifyAddress);
-                } else if (message.startsWith(MqttConstants.COMMAND)) {
-                    commandAddress = message.substring(2);
-                    if (deviceId.equals(commandAddress)) {
-                        sendIntentToMain(MqttConstants.COMMAND, message);
+                if (message.startsWith(MqttConstants.GREETING)) { // We are in proximity of sensor and have received idTopic.
+                    idTopic = message.substring(2);
+                    sendIntentToMain(MqttConstants.GREETING, idTopic);
+                } else if (message.startsWith(MqttConstants.COMMAND)) { // Sensor received deviceId, and they sent it back to confirm it.
+                    commandTopic = message.substring(2);
+                    if (deviceId.equals(commandTopic)) {
+                        mqttAndroidClient.unsubscribe(idTopic);
+                        sendIntentToMain(MqttConstants.COMMAND, message); // We now have the topic on which we can send commands.
                     } else {
-                        Log.d(TAG, "deviceId didn't match!");
+                        Log.e(TAG, "Device ID from sensor didn't match!");
                     }
-
                 } else if (message.startsWith(MqttConstants.DISCONNECT)) {
                     sendIntentToMain(MqttConstants.DISCONNECT, "");
-                    commandAddress = null;
-                    pahoMqttClient.disconnect(mqttAndroidClient);
+                    commandTopic = null;
+                    mqttAndroidClient.unsubscribe(commandTopic);
+                    mqttAndroidClient.unsubscribe(idTopic);
                 }
             }
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-                Log.d(TAG, "deliveryComplete.");
+                Log.d(TAG, "Delivery to MQTT service complete.");
             }
         });
     }
@@ -98,9 +95,7 @@ public class MqttMessageService extends Service {
     }
 
     /**
-     * Retrieves and sets a device name or later identification.
-     *
-     * @return
+     * Retrieves the manufacturer and model of the unit, to be used as identification.
      */
     private void setDeviceId() {
         String manufacturer = Build.MANUFACTURER;
@@ -111,14 +106,13 @@ public class MqttMessageService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented.");
     }
 
     /**
      * Sends an intent with a name and some extra string data.
-     *
-     * @param intentName
-     * @param extra
+     * @param intentName name of the intent ("1:", "2:" or "3:")
+     * @param extra extra string data
      */
     private void sendIntentToMain(String intentName, String extra) {
         Intent intent = new Intent(intentName);
@@ -127,18 +121,17 @@ public class MqttMessageService extends Service {
     }
 
     /**
-     * Receives intents
+     * Receives intents.
      */
     private final BroadcastReceiver intentMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String intentName = intent.getAction();
-            Log.d(TAG, "Intent received: " + intentName);
             assert intentName != null;
-            if (intentName.equals(MqttConstants.GREETING)) {
-                publishMessage("1:" + deviceId, identifyAddress);
+            if (intentName.equals(MqttConstants.GREETING)) { // User pressed the handshake button, so send deviceId.
+                publishMessage(MqttConstants.GREETING + deviceId, idTopic);
             } else if (intentName.equals(MqttConstants.COMMAND)) {
-                publishMessage(MqttConstants.COMMAND + intent.getStringExtra("extra"), commandAddress);
+                publishMessage(MqttConstants.COMMAND + intent.getStringExtra("extra"), commandTopic);
             }
         }
     };

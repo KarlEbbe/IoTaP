@@ -14,41 +14,41 @@
         app:layout_constraintTop_toBottomOf="parent"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
-        android:text="Connect to motion sensor"
+        android:text="@string/btnConnectSensor"
         android:textSize="16sp" />
 
     <Button
-        android:id="@+id/btnGreet"
+        android:id="@+id/btnHandshake"
         android:layout_width="165dp"
         android:layout_height="76dp"
         app:layout_constraintRight_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="parent"
         android:layout_marginTop="16dp"
         android:layout_marginRight="16dp"
-        android:text="Handshake"
+        android:text="@string/btnHandshake"
         android:textSize="16sp" />
 
     <TextView
         android:id="@+id/twGesturelbl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Gesture:"
         app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginLeft="16dp"
+        android:layout_marginLeft="20dp"
         android:layout_marginTop="32dp"
         android:textColor="@android:color/white"
+        android:text="@string/twGesturelbl"
         android:textSize="16sp" />
 
     <TextView
         android:id="@+id/twGesture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
         app:layout_constraintBaseline_toBaselineOf="@id/twGesturelbl"
         app:layout_constraintLeft_toRightOf="@id/twGesturelbl"
         android:layout_marginLeft="2dp"
         android:textColor="@android:color/white"
+        android:text=""
         android:textSize="16sp" />
 
     <TextView
@@ -58,9 +58,9 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/twGesturelbl"
         android:layout_marginTop="32dp"
-        android:layout_marginLeft="16dp"
-        android:text="ID topic:"
+        android:layout_marginLeft="20dp"
         android:textColor="@android:color/white"
+        android:text="@string/twProxIdlbl"
         android:textSize="16sp" />
 
     <TextView
@@ -70,8 +70,8 @@
         app:layout_constraintBaseline_toBaselineOf="@id/twProxIdlbl"
         app:layout_constraintLeft_toRightOf="@id/twProxIdlbl"
         android:layout_marginLeft="2dp"
-        android:text=""
         android:textColor="@android:color/white"
+        android:text=""
         android:textSize="16sp" />
 
 </android.support.constraint.ConstraintLayout>
