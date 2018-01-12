@@ -25,7 +25,7 @@ import weka.core.Instances;
 public class WekaClassifier {
 
     private static final String TAG = "Weka";
-    private static final String MODEL_NAME_FILEPATH = "j48xval.model";
+    private static final String MODEL_NAME_FILEPATH = "j48xval_raw.model";
     private final Context appContext;
 
     private ArrayList<Attribute> attributeList = null;
