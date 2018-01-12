@@ -1,7 +1,6 @@
 package com.project.iotap.iotap.MachineLearning;
 
 
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -42,6 +41,7 @@ public class WekaClassifier {
 
     /**
      * Method that uses a precomputed classifier model to classify a dataset into a gesture.
+     *
      * @param rawGestureData smoothed gesture data.
      */
     public Direction classifyTuple(int[][] rawGestureData) {
@@ -83,45 +83,24 @@ public class WekaClassifier {
     private void setupAttributes() {
         classLabels = new ArrayList<String>() {
             {
-                add("left");
-                add("right");
                 add("up");
                 add("down");
+                add("left");
+                add("right");
             }
         };
 
         attributeList = new ArrayList<>(120);
 
-        //Iterates 120 times adds all the attributes.
-        for (int row = 0; row < 20; row++) {
-            for (int col = 0; col < 6; col++) {
-                StringBuilder name = new StringBuilder(6);
-                switch (col) {
-                    case 0:
-                        name.append("AccX");
-                        break;
-                    case 1:
-                        name.append("AccY");
-                        break;
-                    case 2:
-                        name.append("AccZ");
-                        break;
-                    case 3:
-                        name.append("GyrX");
-                        break;
-                    case 4:
-                        name.append("GyrY");
-                        break;
-                    case 5:
-                        name.append("GyrZ");
-                        break;
-                }
-                name.append(row);
-                attributeList.add(new Attribute(name.toString()));
-            }
+        for (int i = 1; i < 21; i++) {
+            attributeList.add(new Attribute("AccX" + i));
+            attributeList.add(new Attribute("AccY" + i));
+            attributeList.add(new Attribute("AccZ" + i));
+            attributeList.add(new Attribute("GyrX" + i));
+            attributeList.add(new Attribute("GyrY" + i));
+            attributeList.add(new Attribute("GyrZ" + i));
         }
-        Attribute attributeClass = new Attribute("@@class@@", classLabels);
-        attributeList.add(attributeClass);
+        attributeList.add(new Attribute("gesture", classLabels));
     }
 
     /**
@@ -142,6 +121,7 @@ public class WekaClassifier {
 
     /**
      * Converts the predicted label which is a string to the corresponding enum and returns it.
+     *
      * @param predictedClass
      * @return
      */
@@ -150,14 +130,14 @@ public class WekaClassifier {
             case "up":
                 return Direction.UP;
 
-            case "right":
-                return Direction.RIGHT;
-
             case "down":
                 return Direction.DOWN;
 
             case "left":
                 return Direction.LEFT;
+
+            case "right":
+                return Direction.RIGHT;
 
             default:
                 return Direction.UNKNOWN;
