@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.project.iotap.iotap.Activities.MainActivity"
-    tools:layout_editor_absoluteY="81dp">
+    tools:context="com.project.iotap.iotap.Activities.MainActivity" >
 
     <Button
         android:id="@+id/btnConnectSensor"
@@ -16,9 +15,7 @@
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         android:text="Connect to motion sensor"
-        android:textSize="15sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="16dp"/>
+        android:textSize="16sp" />
 
     <Button
         android:id="@+id/btnGreet"
@@ -29,42 +26,52 @@
         android:layout_marginTop="16dp"
         android:layout_marginRight="16dp"
         android:text="Handshake"
-        android:textSize="15sp"
-        tools:layout_editor_absoluteX="208dp"
-        tools:layout_editor_absoluteY="16dp"/>
-
-    <TextView
-        android:id="@+id/twProxIdlbl"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ProxID:"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="239dp"/>
-
-    <TextView
-        android:id="@+id/twProxId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:layout_marginTop="20dp"
-        android:text=""
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/twProxIdlbl"
-        app:layout_constraintTop_toBottomOf="@+id/btnGreet" />
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/twGesturelbl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Gesture:"
+        app:layout_constraintTop_toBottomOf="@+id/btnConnectSensor"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="32dp"
         android:textColor="@android:color/white"
-        android:textSize="24sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="144dp"/>
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/twGesture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        app:layout_constraintBaseline_toBaselineOf="@id/twGesturelbl"
+        app:layout_constraintLeft_toRightOf="@id/twGesturelbl"
+        android:layout_marginLeft="2dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/twProxIdlbl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/twGesturelbl"
+        android:layout_marginTop="32dp"
+        android:layout_marginLeft="16dp"
+        android:text="ID topic:"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/twProxId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBaseline_toBaselineOf="@id/twProxIdlbl"
+        app:layout_constraintLeft_toRightOf="@id/twProxIdlbl"
+        android:layout_marginLeft="2dp"
+        android:text=""
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 
 </android.support.constraint.ConstraintLayout>
