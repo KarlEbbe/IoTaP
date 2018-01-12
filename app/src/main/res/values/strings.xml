@@ -3,6 +3,6 @@
     <string name="btnHandshake">Handshake</string>
     <string name="btnConnectSensor">Connect to motion sensor</string>
     <string name="btnDisconnectSensor">Disconnect from motion sensor</string>
-    <string name="twGesturelbl">Gesture:</string>
+    <string name="twGesturelbl">Last gesture:</string>
     <string name="twProxIdlbl">ID topic:</string>
 </resources>
