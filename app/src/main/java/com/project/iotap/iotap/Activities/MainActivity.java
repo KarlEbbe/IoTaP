@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void rawGestureDataCB(int[][] rawGestureData) {
                             //rawGestureData = testHardcodedGesture.getArray(1); //----------------------------------------------------------DEBUG! To be removed
-                            dataPreProcesser.processData(rawGestureData);
+                            //dataPreProcesser.processData(rawGestureData);
                             Direction direction = wekaClassifier.classifyTuple(rawGestureData);
                             vibrate();
                             twGesture.setText(String.valueOf(direction));
