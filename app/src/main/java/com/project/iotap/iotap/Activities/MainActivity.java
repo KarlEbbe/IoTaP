@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void publishGestureToArdunio(Direction direction) {
         if (commandAddress != null) {
-            sendIntentToService(MqttConstants.COMMAND, direction.name().toLowerCase());
+            sendIntentToService(MqttConstants.COMMAND, direction.name());
         } else {
             Log.d(TAG, "No commandAddress");
             Toast.makeText(getApplicationContext(), "Couldn't publish gesture to sensor!", Toast.LENGTH_LONG).show();

@@ -22,7 +22,6 @@ public class MqttMessageService extends Service {
 
     private static final String TAG = "MqttMessageService";
 
-
     private PahoMqttClient pahoMqttClient;
     private MqttAndroidClient mqttAndroidClient;
     private String deviceId, identifyAddress, commandAddress;
@@ -64,11 +63,11 @@ public class MqttMessageService extends Service {
                 Log.d(TAG, "package arrived from mqtt: " + s + " : " + message);
 
                 if (message.startsWith(MqttConstants.GREETING)) {
-                    identifyAddress = message.substring(3);
+                    identifyAddress = message.substring(2);
                     sendIntentToMain(MqttConstants.GREETING, identifyAddress);
                 } else if (message.startsWith(MqttConstants.COMMAND)) {
-                    commandAddress = message.substring(3);
-                    if (deviceId.equals(commandAddress)) {//------------------< Step 6 in protocol.  Not sure if this is correct!
+                    commandAddress = message.substring(2);
+                    if (deviceId.equals(commandAddress)) {
                         sendIntentToMain(MqttConstants.COMMAND, message);
                     } else {
                         Log.d(TAG, "deviceId didn't match!");
@@ -139,7 +138,7 @@ public class MqttMessageService extends Service {
             if (intentName.equals(MqttConstants.GREETING)) {
                 publishMessage("1:" + deviceId, identifyAddress);
             } else if (intentName.equals(MqttConstants.COMMAND)) {
-                publishMessage(intent.getStringExtra("extra"), commandAddress);
+                publishMessage(MqttConstants.COMMAND + intent.getStringExtra("extra"), commandAddress);
             }
         }
     };
